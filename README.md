@@ -29,7 +29,7 @@ https://www.terraform.io/downloads.html
 ## Usage
 
 Once the pre-reqs have been satisfied clone this repository and rename the directory to the desired cluster name.
-> Note: The directory name is used as the cluster name prefix.
+> Note: `The directory name is used as the cluster name prefix so make sure to change it`
 
 Then run one of the following depending on the requirement:
 
