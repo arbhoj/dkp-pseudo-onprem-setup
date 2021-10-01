@@ -1,0 +1,220 @@
+---
+- hosts: registry
+  gather_facts: no
+  become: yes
+  tasks: 
+  - name: Disable SELinux
+    ansible.posix.selinux:
+      state: disabled
+  - name: Install yum utils
+    yum:
+      name:
+      - yum-utils
+  - name: Configure Docker Repo
+    command: yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+  - name: Install packages
+    yum:
+      name:
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+      - wget
+      - git
+      - python-docker
+      - curl
+      state: present
+  - name: Create docker group
+    group:
+      name: docker
+      state: present
+  - name: Add centos user to docker group    
+    user: 
+      name: centos
+      groups: docker
+      append: yes 
+  - name: Start docker service
+    service:
+      name: docker
+      state: started
+      enabled: yes
+  - name: Set registry as insecure as it has a self signed cert
+    copy:
+      dest: "/etc/docker/daemon.json"
+      content: |
+        {"insecure-registries" : ["{{inventory_hostname}}:5000","{{inventory_hostname}}:5001","{{inventory_hostname}}:5002"]}
+  - name: Daemon reload and restart docker service
+    service:
+      name: docker
+      state: restarted
+      enabled: yes
+      daemon_reload: yes
+  - name: Download and configure kubectl
+    get_url:
+      url: "https://dl.k8s.io/release/{{kubectl_version}}/bin/linux/amd64/kubectl"
+      dest: /usr/local/bin/kubectl
+      mode: 0711
+  - name: Local user configs
+    block:
+    - name: Create ssl certs for image registry
+      script: create_registrycerts.sh
+      args:
+        creates: ca.crt
+    - name: Download helm_install Script
+      get_url:
+        url: https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3
+        dest: /tmp/get_helm.sh
+        mode: '700'
+    - name: Execute script to install helm
+      command: /tmp/get_helm.sh
+      args:
+        creates: /usr/local/bin/helm
+      ignore_errors: yes
+    - name: Download Konvoy Image Builder
+      get_url:
+        url: "https://github.com/mesosphere/konvoy-image-builder/releases/download/v1.0.0/konvoy-image-bundle-{{konvoy_image_builder_version}}_linux.tar.gz"
+        dest: "/tmp/konvoy-image-bundle-{{konvoy_image_builder_version}}_linux.tar.gz"
+    - name: Extract Konvoy Image Builder
+      unarchive:
+        src: "/tmp/konvoy-image-bundle-{{konvoy_image_builder_version}}_linux.tar.gz"
+        dest: /home/centos
+        owner: centos
+        mode: 0700
+        remote_src: yes
+    - name: Rename to konvoy-image-builder
+      command: mv /home/centos/konvoy-image-bundle-{{konvoy_image_builder_version}}_linux /home/centos/konvoy-image-builder
+      args:
+        creates: /home/centos/konvoy-image-builder
+  #URL is not reachable without signing in hence for now we will copy the file in the ansible controller under the home dir
+  #  - name: Download DKP Installer
+  #    get_url:
+  #      url: "https://github.com/mesosphere/konvoy2/releases/download/{{dkp_version}}/dkp_{{dkp_version}}_linux_amd64.tar.gz"
+  #      dest: "/tmp/dkp_{{dkp_version}}_linux_amd64.tar.gz"
+  #    become_user: centos
+  #    tags:
+  #    - test 
+    - name: Copy DKP Installer tar from Ansible Controller
+      copy:
+        src: ~/dkp_{{dkp_version}}_linux_amd64.tar.gz
+        dest: /tmp
+        owner: centos
+        group: centos
+        mode: 0700
+    - name: Extract Konvoy DKP
+      unarchive:
+        src: "/tmp/dkp_{{dkp_version}}_linux_amd64.tar.gz"
+        dest: /home/centos
+        owner: centos
+        mode: 0700
+        remote_src: yes
+    - name: Create provision directory
+      file:
+        path: /home/centos/provision
+        state: directory
+        mode: 0755
+        owner: centos
+        group: centos
+    - name: Copy Student notes
+      copy:
+        src: ../provision/dkp_2_install.txt
+        dest: /home/centos/{{cluster_name}}-student-notes.txt
+        owner: centos
+        group: centos
+        mode: 0600
+    - name: Copy Inventory File
+      copy:
+        src: ../provision/inventory2.yaml
+        dest: /home/centos/provision/inventory.yaml
+        owner: centos
+        group: centos
+        mode: 0600
+    - name: Copy Preprovisioned Inventory
+      copy:
+        src: "../provision/{{cluster_name}}-preprovisioned_inventory2.yaml"
+        dest: /home/centos/provision/{{cluster_name}}-preprovisioned_inventory.yaml
+        owner: centos
+        group: centos
+        mode: 0600
+    - name: Copy Key
+      copy:
+        src: "{{ansible_ssh_private_key_file}}"
+        dest: /home/centos
+        owner: centos
+        group: centos
+        mode: 0600
+    - name: Copy Key to Konvoy Image Builder Dir
+      copy:
+        src: "{{ansible_ssh_private_key_file}}"
+        dest: /home/centos/konvoy-image-builder
+        owner: centos
+        group: centos
+        mode: 0600
+    - name: Copy awsebscsiprovisioner_values.yaml
+      copy:
+        src: "awsebscsiprovisioner_values.yaml"
+        dest: /home/centos/
+        owner: centos
+        group: centos
+        mode: 0600
+    - name: Copy get_cluster_details.sh script 
+      copy:
+        src: "get_cluster_details.sh"
+        dest: /home/centos/
+        owner: centos
+        group: centos
+        mode: 0700
+    - name: Create the notes directory if it does not exist
+      file:
+        path: /home/centos/notes
+        state: directory
+        mode: 0755
+        owner: centos
+        group: centos 
+    - name: Copy dkp_2_install.md
+      copy:
+        src: "../provision/dkp_2_install.md"
+        dest: /home/centos/notes
+        owner: centos
+        group: centos
+        mode: 0600
+    - name: Add alias for k and set kubeconfig to konvoy cluster
+      blockinfile:
+        path: /home/centos/.bashrc
+        block: |
+          alias watch='watch '
+          alias k="kubectl --kubeconfig=/home/centos/admin.conf"
+    - name: Copy auto_full.sh to the registry server
+      copy:
+        src: "../provision/auto_full.sh"
+        dest: /home/centos/
+        owner: centos
+        group: centos
+        mode: 0700
+    - name: Execute auto_full.sh
+      script: ../provision/auto_full.sh 
+    become_user: centos
+  ##Running the following two as root as we were getting a (13,'Permission denied error') although the user is added to docker group. This could be because the same connection is being persisted and the user needs to logout and log back in for the permissions to become effective.  
+  - name: Start Notes Server
+    community.docker.docker_container:
+      name: markdownserver
+      image: thomsch98/markserv
+      state: started
+      restart: yes
+      ports:
+      - "80:3080"
+      volumes:
+      - /home/centos/notes:/data
+      container_default_behavior: compatibility
+  - name: Start Registry Server
+    community.docker.docker_container:
+      name: dkpimageregistry
+      image: registry:2
+      state: started
+      ports:
+      - "5000:5000"
+      volumes:
+      - /home/centos/certs:/certs
+      env:
+        REGISTRY_HTTP_ADDR: "0.0.0.0:5000"
+        REGISTRY_HTTP_TLS_CERTIFICATE: "/certs/client-cert.crt"
+        REGISTRY_HTTP_TLS_KEY: "/certs/client-key.key"
+      container_default_behavior: compatibility

@@ -1,0 +1,1 @@
+terraform -chdir=provision taint null_resource.custom_ansible_registry_playbook

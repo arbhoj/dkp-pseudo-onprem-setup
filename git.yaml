@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: null
+  labels:
+    run: git
+  name: git
+spec:
+  containers:
+  - image: alpine/git
+    command:
+    - /bin/sh
+    - -c
+    - sleep 1000000000
+    name: git
+    resources: {}
+  dnsPolicy: ClusterFirst
+  restartPolicy: Always
+status: {}

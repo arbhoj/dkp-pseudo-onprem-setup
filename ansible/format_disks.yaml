@@ -1,0 +1,9 @@
+---
+- hosts: all
+  gather_facts: no
+  become: yes
+  tasks:
+  - name: Format disks for worker nodes
+    script: format_disks.sh
+    when: node_pool == "worker"
+

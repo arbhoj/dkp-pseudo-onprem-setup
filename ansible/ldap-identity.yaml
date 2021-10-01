@@ -1,0 +1,36 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: ldap-password
+  namespace: kommander
+type: Opaque
+stringData:
+  password: password
+---
+apiVersion: dex.mesosphere.io/v1alpha1
+kind: Connector
+metadata:
+  name: ldap
+  namespace: kommander
+spec:
+  enabled: true
+  type: ldap
+  displayName: LDAP Test
+  ldap:
+    host: ldap.forumsys.com:389
+    insecureNoSSL: true
+    bindDN: cn=read-only-admin,dc=example,dc=com
+    bindSecretRef:
+      name: ldap-password
+    userSearch:
+      baseDN: dc=example,dc=com
+      filter: "(objectClass=inetOrgPerson)"
+      username: uid
+      idAttr: uid
+      emailAttr: mail
+    groupSearch:
+      baseDN: dc=example,dc=com
+      filter: "(objectClass=groupOfUniqueNames)"
+      userAttr: DN
+      groupAttr: uniqueMember
+      nameAttr: ou
