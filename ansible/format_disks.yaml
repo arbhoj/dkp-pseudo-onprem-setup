@@ -6,4 +6,10 @@
   - name: Format disks for worker nodes
     script: format_disks.sh
     when: node_pool == "worker"
+  - name: Enable and start iscsi daemon
+    service:
+      name: iscsid
+      state: started
+      enabled: yes
+    ignore_errors: yes
 
