@@ -1,0 +1,104 @@
+---
+- hosts: all
+  gather_facts: no
+  become: yes
+  vars:
+    device: sdh
+  tasks:
+  - name: Settings to be applied on worker nodes
+    block:
+    - name: Set hugepages
+      shell: "echo 1024 | sudo tee /sys/kernel/mm/hugepages/hugepages-2048kB/nr_hugepages"
+    - name: Make hugepages permanent
+      shell: "echo vm.nr_hugepages = 1024 | sudo tee -a /etc/sysctl.conf"
+    - name: Restart Kubelet
+      service:
+        name: kubelet
+        state: restarted
+      ignore_errors: true  
+    when: node_pool == "worker"
+  - name: Deploy mayastor
+    block:
+    - name: Label nodes for mayastor
+      shell: while read workernode; do kubectl label node $workernode openebs.io/engine=mayastor --overwrite; done <<< "$(kubectl get nodes --no-headers | grep -iv control | awk '{print $1}')"
+    - name: Create mayastor namespace
+      shell: kubectl create namespace mayastor --dry-run=client -o yaml | kubectl apply -f -
+    - name: Create RBAC
+      shell: kubectl create -f https://raw.githubusercontent.com/openebs/Mayastor/v0.8.0/deploy/moac-rbac.yaml --dry-run=client -o yaml | kubectl apply -f -
+    - name: Create CRDs
+      shell: kubectl apply -f https://raw.githubusercontent.com/openebs/Mayastor/v0.8.0/csi/moac/crds/mayastorpool.yaml --dry-run=client -o yaml | kubectl apply -f -
+    - name: Deploy NATs
+      shell: kubectl apply -f https://raw.githubusercontent.com/openebs/Mayastor/v0.8.0/deploy/nats-deployment.yaml --dry-run=client -o yaml | kubectl apply -f - && kubectl -n mayastor rollout status deploy/nats
+    - name: Deploy etcd statefulset 
+      shell: kubectl apply -f https://raw.githubusercontent.com/openebs/Mayastor/v0.8.1/deploy/etcd/statefulset.yaml --dry-run=client -o yaml | kubectl apply -f - 
+    - name: Deploy etcd service
+      shell: kubectl apply -f https://raw.githubusercontent.com/openebs/Mayastor/v0.8.1/deploy/etcd/svc.yaml --dry-run=client -o yaml | kubectl apply -f -
+    - name: Deploy etcd headless service
+      shell: kubectl apply -f https://raw.githubusercontent.com/openebs/Mayastor/v0.8.1/deploy/etcd/svc-headless.yaml --dry-run=client -o yaml | kubectl apply -f -
+    - name: Wait for  etcd statefulset rollout to complete
+      shell: kubectl -n mayastor rollout status sts/mayastor-etcd
+    - name: Deploy csi node plugin
+      shell: kubectl apply -f https://raw.githubusercontent.com/openebs/Mayastor/v0.8.0/deploy/csi-daemonset.yaml --dry-run=client -o yaml | kubectl apply -f - && kubectl -n mayastor rollout status ds/mayastor-csi
+    - name: Deploy Control Plane
+      shell: kubectl apply -f https://raw.githubusercontent.com/openebs/Mayastor/v0.8.0/deploy/moac-deployment.yaml --dry-run=client -o yaml | kubectl apply -f - && kubectl -n mayastor rollout status deploy/moac
+    - name: Deploy Data Plane
+      shell: kubectl apply -f https://raw.githubusercontent.com/openebs/Mayastor/v0.8.0/deploy/mayastor-daemonset.yaml --dry-run=client -o yaml | kubectl apply -f - && kubectl -n mayastor rollout status ds/mayastor
+    - name: Sleep 60 seconds and Check status of Mayastor Node resource
+      shell: sleep 60; kubectl -n mayastor get mayastornodes
+    - name: Get and register node names
+      shell: kubectl get nodes --no-headers | grep -iv control | awk '{print $1}'
+      register: kubenodes
+    - name: Create storage pools
+      shell: 
+        cmd: | 
+          cat<< EOF | kubectl apply -f -
+          apiVersion: "openebs.io/v1alpha1"
+          kind: MayastorPool
+          metadata:  
+            name: pool-on-{{ item }}-{{ device }}
+            namespace: mayastor
+          spec:
+            node: {{ item }}
+            disks: ["/dev/{{ device }}"]
+          EOF
+      loop: "{{ kubenodes.stdout_lines }}"
+    - name: Create Storage Class with Single Replication
+      shell:
+        cmd: |
+         cat<< EOF | kubectl apply -f -
+         kind: StorageClass
+         apiVersion: storage.k8s.io/v1
+         metadata:
+           name: mayastor-iscsi-single
+         parameters:
+           repl: '1'
+           protocol: 'iscsi'
+         provisioner: io.openebs.csi-mayastor
+    - name: Create Storage Class with Double Replication
+      shell:
+        cmd: |
+         cat<< EOF | kubectl apply -f -
+         kind: StorageClass
+         apiVersion: storage.k8s.io/v1
+         metadata:
+           name: mayastor-iscsi-double
+         parameters:
+           repl: '2'
+           protocol: 'iscsi'
+         provisioner: io.openebs.csi-mayastor
+    - name: Create Storage Class with Tripple Replication
+      shell:
+        cmd: |
+         cat<< EOF | kubectl apply -f -
+         kind: StorageClass
+         apiVersion: storage.k8s.io/v1
+         metadata:
+           name: mayastor-iscsi-tripple
+         parameters:     
+           repl: '3'
+           protocol: 'iscsi'
+         provisioner: io.openebs.csi-mayastor
+    when: node_pool == "control"
+    run_once: true
+    environment:
+      KUBECONFIG: /etc/kubernetes/admin.conf
