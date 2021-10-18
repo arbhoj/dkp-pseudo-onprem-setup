@@ -37,6 +37,17 @@ variable kubectl_version {
 
 }
 
+variable node_os {
+  description = "OS of the nodes"
+  default = "flatcar"
+}
+
+variable deploy_mayastor {
+  description = "Whether to deploy and configure mayastor as the default storage provisioner"
+  default = false
+
+}
+
 variable "control_plane_count" {
   description = "Number of control plane nodes"
   default     = 1 

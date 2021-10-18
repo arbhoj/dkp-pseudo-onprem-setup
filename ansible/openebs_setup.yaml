@@ -1,26 +1,40 @@
 ---
 - hosts: all
-  gather_facts: no
+  gather_facts: yes
   become: yes
   vars:
     device: sdh
   tasks:
-  - name: Settings to be applied on worker nodes
-    block:
-    - name: Set hugepages
-      shell: "echo 1024 | sudo tee /sys/kernel/mm/hugepages/hugepages-2048kB/nr_hugepages"
-    - name: Make hugepages permanent
-      shell: "echo vm.nr_hugepages = 1024 | sudo tee -a /etc/sysctl.conf"
-    - name: Restart Kubelet
-      service:
-        name: kubelet
-        state: restarted
-      ignore_errors: true  
+  - name: Set hugepages
+    shell: 
+      cmd: |
+        echo "1024" | sudo tee /sys/kernel/mm/hugepages/hugepages-2048kB/nr_hugepages
     when: node_pool == "worker"
+  - name: Make hugepages permanent
+    shell: 
+      cmd: |
+        echo "vm.nr_hugepages = 1024" | sudo tee -a /etc/sysctl.conf
+    when: node_pool == "worker"
+  - name: Restart Kubelet
+    service:
+      name: kubelet
+      state: restarted
+    ignore_errors: true
+    when: node_pool == "worker"
+  - name: Start and enable iscsid
+    service:
+      name: iscsid
+      state: started
+      enabled: yes
+    when: node_pool == "worker" 
   - name: Deploy mayastor
     block:
     - name: Label nodes for mayastor
-      shell: while read workernode; do kubectl label node $workernode openebs.io/engine=mayastor --overwrite; done <<< "$(kubectl get nodes --no-headers | grep -iv control | awk '{print $1}')"
+      shell: 
+        cmd: |
+          while read workernode; do kubectl label node $workernode openebs.io/engine=mayastor --overwrite; done <<< $(kubectl get nodes --no-headers | grep -iv control | awk '{print $1}')
+      tags:
+      - test
     - name: Create mayastor namespace
       shell: kubectl create namespace mayastor --dry-run=client -o yaml | kubectl apply -f -
     - name: Create RBAC
@@ -65,39 +79,47 @@
     - name: Create Storage Class with Single Replication
       shell:
         cmd: |
-         cat<< EOF | kubectl apply -f -
-         kind: StorageClass
-         apiVersion: storage.k8s.io/v1
-         metadata:
-           name: mayastor-iscsi-single
-         parameters:
-           repl: '1'
-           protocol: 'iscsi'
-         provisioner: io.openebs.csi-mayastor
+          cat<< EOF | kubectl apply -f -
+          apiVersion: "storage.k8s.io/v1"
+          kind: StorageClass
+          metadata:
+            name: mayastor-iscsi-single
+            annotations:
+              "storageclass.kubernetes.io/is-default-class": "true"
+          parameters:
+            repl: "1"
+            protocol: "iscsi"
+            fsType: 'xfs'
+          provisioner: io.openebs.csi-mayastor
+          EOF
     - name: Create Storage Class with Double Replication
       shell:
         cmd: |
-         cat<< EOF | kubectl apply -f -
-         kind: StorageClass
-         apiVersion: storage.k8s.io/v1
-         metadata:
-           name: mayastor-iscsi-double
-         parameters:
-           repl: '2'
-           protocol: 'iscsi'
-         provisioner: io.openebs.csi-mayastor
+          cat<< EOF | kubectl apply -f -
+          apiVersion: storage.k8s.io/v1
+          kind: StorageClass
+          metadata:
+            name: mayastor-iscsi-double
+          parameters:
+            repl: "2"
+            protocol: "iscsi"
+            fsType: 'xfs'
+          provisioner: io.openebs.csi-mayastor
+          EOF
     - name: Create Storage Class with Tripple Replication
       shell:
         cmd: |
-         cat<< EOF | kubectl apply -f -
-         kind: StorageClass
-         apiVersion: storage.k8s.io/v1
-         metadata:
-           name: mayastor-iscsi-tripple
-         parameters:     
-           repl: '3'
-           protocol: 'iscsi'
-         provisioner: io.openebs.csi-mayastor
+          cat<< EOF | kubectl apply -f -
+          kind: StorageClass
+          apiVersion: storage.k8s.io/v1
+          metadata:
+            name: mayastor-iscsi-tripple
+          parameters:     
+            repl: "3"
+            protocol: "iscsi"
+            fsType: 'xfs'
+          provisioner: io.openebs.csi-mayastor
+          EOF
     when: node_pool == "control"
     run_once: true
     environment:

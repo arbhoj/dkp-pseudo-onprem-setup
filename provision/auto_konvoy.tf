@@ -1,10 +1,10 @@
-resource "local_file" "auto_full_sh" {
-  filename = "auto_full.sh"
+resource "local_file" "auto_konvoy_sh" {
+  filename = "auto_konvoy.sh"
 
   depends_on = [aws_instance.registry]
 
   provisioner "local-exec" {
-    command = "chmod 700 auto_full.sh"
+    command = "chmod 700 auto_konvoy.sh"
   }
   content = <<EOF
 if [ $# -ne 0 ]; then
@@ -14,7 +14,7 @@ if [ $# -ne 0 ]; then
     echo -e "\nRunning Konvoy image builder"
     echo -e "\n./konvoy-image provision --inventory-file /home/centos/provision/inventory.yaml  images/generic/flatcar.yaml" 
     cd /home/centos/konvoy-image-builder
-    ./konvoy-image provision --inventory-file /home/centos/provision/inventory.yaml  images/generic/flatcar.yaml #Select a yaml depending on the operating system of the cluster
+    ./konvoy-image provision --inventory-file /home/centos/provision/inventory.yaml  images/generic/${var.node_os}.yaml #Select a yaml depending on the operating system of the cluster
     
     #####################
     ###Deploy DKP Cluster#####
@@ -38,9 +38,13 @@ if [ $# -ne 0 ]; then
     #Create the manifest files for deploying the konvoy to the cluster
     #Note if deploying a flatcar cluster then add the --os-hint=flatcar flag like this:
     echo -e "\n\nCreate manifest to deploy cluster"
-    echo -e "\n./dkp create cluster preprovisioned --cluster-name ${var.cluster_name} --control-plane-endpoint-host ${aws_elb.konvoy_control_plane.dns_name} --os-hint=flatcar --control-plane-replicas 1 --worker-replicas 4 --dry-run -o yaml > deploy-dkp-${var.cluster_name}.yaml"
-    ./dkp create cluster preprovisioned --cluster-name ${var.cluster_name} --control-plane-endpoint-host ${aws_elb.konvoy_control_plane.dns_name} --os-hint=flatcar --control-plane-replicas 1 --worker-replicas 4 --dry-run -o yaml > deploy-dkp-${var.cluster_name}.yaml
-    
+    if [ ${var.node_os} == "flatcar" ]; then
+      echo -e "\n./dkp create cluster preprovisioned --cluster-name ${var.cluster_name} --control-plane-endpoint-host ${aws_elb.konvoy_control_plane.dns_name} --os-hint=flatcar --control-plane-replicas 1 --worker-replicas 4 --dry-run -o yaml > deploy-dkp-${var.cluster_name}.yaml"
+      ./dkp create cluster preprovisioned --cluster-name ${var.cluster_name} --control-plane-endpoint-host ${aws_elb.konvoy_control_plane.dns_name} --os-hint=flatcar --control-plane-replicas 1 --worker-replicas 4 --dry-run -o yaml > deploy-dkp-${var.cluster_name}.yaml
+    else    
+      echo -e "\n./dkp create cluster preprovisioned --cluster-name ${var.cluster_name} --control-plane-endpoint-host ${aws_elb.konvoy_control_plane.dns_name} --control-plane-replicas 1 --worker-replicas 4 --dry-run -o yaml > deploy-dkp-${var.cluster_name}.yaml"
+      ./dkp create cluster preprovisioned --cluster-name ${var.cluster_name} --control-plane-endpoint-host ${aws_elb.konvoy_control_plane.dns_name} --control-plane-replicas 1 --worker-replicas 4 --dry-run -o yaml > deploy-dkp-${var.cluster_name}.yaml
+    fi
     ##Update all occurances of cloud-provider="" to cloud-provider=aws
     echo -e "\n\nSet cloud-provider to aws"
     echo -e "\nsed -i 's/cloud-provider\:\ \"\"/cloud-provider\:\ \"aws\"/' deploy-dkp-${var.cluster_name}.yaml"
@@ -68,12 +72,13 @@ if [ $# -ne 0 ]; then
     echo -e "\nexport KUBECONFIG=$(pwd)/admin.conf"  
     export KUBECONFIG=$(pwd)/admin.conf
     
-    ##Deploy awsebs
-    echo -e "\n\n Deploy awsebscsiprovisioner" 
-    helm repo add d2iq-stable https://mesosphere.github.io/charts/stable
-    helm repo update
-    helm install awsebscsiprovisioner d2iq-stable/awsebscsiprovisioner --version 0.5.0 --values awsebscsiprovisioner_values.yaml
-    
+    ##Deploy awsebs if mayastor is not enabled
+    if [ ${var.deploy_mayastor} == false ]; then
+      echo -e "\n\n Deploy awsebscsiprovisioner" 
+      helm repo add d2iq-stable https://mesosphere.github.io/charts/stable
+      helm repo update
+      helm install awsebscsiprovisioner d2iq-stable/awsebscsiprovisioner --version 0.5.0 --values awsebscsiprovisioner_values.yaml 
+    fi
     ##Mark localvolumeprovisioner as non-default sc
     echo "Unset localvolumeprovisioner as default provisioner"
     kubectl patch sc localvolumeprovisioner -p '{"metadata":{"annotations":{"storageclass.kubernetes.io/is-default-class":"false"}}}'
@@ -83,30 +88,13 @@ if [ $# -ne 0 ]; then
     echo -e "\nexport KUBECONFIG=$(pwd)/admin.conf"
     echo -e "\nCheck if all the nodes are in ready state"
     echo -e "\nkubectl get nodes"
-    if [ $1 = "kommander" ]; then
-      echo -e "\n\n Deploy Kommander"
-      ###Deploy Kommander#####
-      export VERSION=${var.kommander_version}
-      helm repo add kommander https://mesosphere.github.io/kommander/charts
-      helm repo update
-      helm install -n kommander --create-namespace kommander-bootstrap kommander/kommander-bootstrap --version=${var.kommander_version} --set certManager=$(kubectl get ns cert-manager > /dev/null 2>&1 && echo "false" || echo "true")
-      echo -e "\n\nKommander helm chart deployed. Might take upto 30 minutes for the addon apps to be deployed"
-      echo -e "\nConnect to the bootstrap server and wait for all Helm Release resources to be ready"
-      echo -e "\nRun the following to watch the status of the helm releases"
-      echo -e "\nwatch k get hr -A"
-      echo -e "\n\nRun the following to get the cluster details once traefik and dex are deployed"
-      echo -e "\n./get_cluster_details.sh"
-      echo -e "\nNote: Before deploying any helm charts make sure to set admin.conf as the KUBECONFIG"
-      echo -e "\nE.g. export KUBECONFIG=$(pwd)/admin.conf"
-      echo -e "\n\n"
-    fi
   fi
 else
     echo -e "\n\nJust doing a base environment setup. Use instructions to build and deploy konvoy/kommander"
     echo -e "\nFollow the instructions here for the steps to deploy cluster"
     echo -e "\nhttp://${aws_instance.registry[0].public_ip}/dkp_2_install.md"
+    echo -e "\nSSH Details: ssh centos@${aws_instance.registry[0].public_ip} -i ${trimprefix(var.ssh_private_key_file, "../")}"
 fi
-echo -e "\nSSH Details: ssh centos@${aws_instance.registry[0].public_ip} -i ${trimprefix(var.ssh_private_key_file, "../")}"
 exit
 EOF
 }

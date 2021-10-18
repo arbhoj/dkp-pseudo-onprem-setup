@@ -10,7 +10,7 @@ resource "local_file" "ansible_registry_inventory" {
 all:
   vars:
     ansible_user: ${var.ssh_registry_username}
-    ansible_ssh_private_key_file: ${var.ssh_private_key_file}
+    ansible_ssh_private_key_file: ${trimprefix(var.ssh_private_key_file, "../")}
     ansible_python_interpreter: /usr/bin/python
     ansible_ssh_common_args: '-o StrictHostKeyChecking=no'
     konvoy_image_builder_version: ${var.konvoy_image_builder_version}

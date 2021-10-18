@@ -13,7 +13,7 @@ all:
     ansible_user: ${var.ssh_username}
     ansible_port: 22
     ansible_ssh_common_args: '-o StrictHostKeyChecking=no'
-    ansible_ssh_private_key_file: ${var.ssh_private_key_file}
+    ansible_ssh_private_key_file: ${trimprefix(var.ssh_private_key_file, "../")}
     registry_server: "${aws_instance.registry[0].private_ip}:5000" #Note: Use the private ip of the registry server
     cluster_name: ${var.cluster_name}
   hosts:

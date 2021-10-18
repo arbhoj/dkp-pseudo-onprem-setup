@@ -21,7 +21,7 @@ tags = {
   "owner" : "$USER",
   "expiration" : "32h"
 }
-aws_region = "us-east-1"
+aws_region = "us-west-2"
 aws_availability_zones = ["us-east-1c"]
 node_os = "flatcar"
 deploy_mayastor = false
@@ -42,9 +42,3 @@ EOF
 fi
 
 terraform -chdir=provision init
-terraform -chdir=provision apply -auto-approve -var-file ../$USERID.tfvars
-if [ $? -eq 0 ]; then
-./provision/post_setup.sh $1
-else
-  echo "!!!Something went wrong with the provisioning process. Please fix that and retry!!!"
-fi

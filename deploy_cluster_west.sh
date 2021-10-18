@@ -8,6 +8,7 @@ else
     echo "Generating key pair $CLUSTER_NAME and $CLUSTER_NAME.pub"
 ##Generate ssh keys for the cluster
 ssh-keygen -q -t rsa -N '' -f $CLUSTER_NAME <<<y 2>&1 >/dev/null
+cp $CLUSTER_NAME provision/$CLUSTER_NAME
 fi
 
 if test -f "$USERID.tfvars"; then
@@ -22,6 +23,11 @@ tags = {
 }
 aws_region = "us-west-2"
 aws_availability_zones = ["us-west-2c"]
+node_os = "flatcar"
+deploy_mayastor = false
+konvoy_image_builder_version = "v1.0.0"
+kommander_version = "v2.0.0"
+dkp_version = "v2.0.0"
 node_ami = "ami-0e6702240b9797e12"
 registry_ami = "ami-0686851c4e7b1a8e1"
 ansible_python_interpreter = "/opt/bin/python"

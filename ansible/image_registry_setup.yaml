@@ -136,14 +136,14 @@
         mode: 0600
     - name: Copy Key
       copy:
-        src: "{{ansible_ssh_private_key_file}}"
+        src: "../{{ansible_ssh_private_key_file}}"
         dest: /home/centos
         owner: centos
         group: centos
         mode: 0600
     - name: Copy Key to Konvoy Image Builder Dir
       copy:
-        src: "{{ansible_ssh_private_key_file}}"
+        src: "../{{ansible_ssh_private_key_file}}"
         dest: /home/centos/konvoy-image-builder
         owner: centos
         group: centos
@@ -182,15 +182,15 @@
         block: |
           alias watch='watch '
           alias k="kubectl --kubeconfig=/home/centos/admin.conf"
-    - name: Copy auto_full.sh to the registry server
-      copy:
-        src: "../provision/auto_full.sh"
-        dest: /home/centos/
-        owner: centos
-        group: centos
-        mode: 0700
-    - name: Execute auto_full.sh
-      script: ../provision/auto_full.sh 
+    #- name: Copy auto_full.sh to the registry server
+    #  copy:
+    #    src: "../provision/auto_full.sh"
+    #    dest: /home/centos/
+    #    owner: centos
+    #    group: centos
+    #    mode: 0700
+    #- name: Execute auto_full.sh
+    #  script: ../provision/auto_full.sh 
     become_user: centos
   ##Running the following two as root as we were getting a (13,'Permission denied error') although the user is added to docker group. This could be because the same connection is being persisted and the user needs to logout and log back in for the permissions to become effective.  
   - name: Start Notes Server
