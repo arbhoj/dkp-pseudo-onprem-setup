@@ -21,7 +21,7 @@ tags = {
   "owner" : "$USER",
   "expiration" : "32h"
 }
-worker_node_count = 4
+worker_node_count = 2
 aws_region = "us-west-2"
 aws_availability_zones = ["us-west-2c"]
 node_os = "flatcar"
