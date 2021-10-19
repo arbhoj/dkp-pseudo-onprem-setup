@@ -21,6 +21,7 @@ tags = {
   "owner" : "$USER",
   "expiration" : "32h"
 }
+worker_node_count = 4
 aws_region = "us-west-2"
 aws_availability_zones = ["us-west-2c"]
 node_ami = "ami-0e6702240b9797e12"
