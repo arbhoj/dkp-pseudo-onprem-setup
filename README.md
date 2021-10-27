@@ -18,12 +18,12 @@ The idea was to not boil the ocean and quicky build something that fits common u
 > Note: The Registry/Bootstrap server will always be centos. The kubernetes cluster instances are flatcar by default to provide everyone more exposure to flatcar. Currently these can be only be changed if you are deploying konvoy and kommander on your own and only using this to build the base infrastructure. The auto-deployment of konvoy and kommander is hardcoded to work only for flatcar (this will most likely change soon though as it is a simple fix but will require some more testing).  
 
 ## Pre-reqs 
-1. Download the [DKP Release](https://github.com/mesosphere/konvoy2/releases) and extract the DKP binary directly under the $HOME dir on the server from where this will be run
+1. Download the [DKP Release](https://github.com/mesosphere/konvoy2/releases) and place the installer bunlde (i.e. .tar.gz file e.g. dkp_v2.1.0-beta.1+build.1_linux_amd64.tar.gz) under the $HOME dir on the server from where this tool will be run
 2. Ansible 2.10.6 or greater
 https://docs.ansible.com/ansible/2.9/installation_guide/intro_installation.html#installing-ansible-with-pip
 3. Terraform version v0.15.4 or greater
 https://www.terraform.io/downloads.html
-4. AWS CLI Setup & Credentials. 
+4. AWS CLI Setup & Credentials 
 > Note: To simplify things set the region in `~/.aws/config` to match the region you will be deploying to.
 
 ## Usage
