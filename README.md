@@ -80,10 +80,19 @@ Then run one of the following depending on the requirement:
   ./delete_cluster.sh 
   ```
 
-- To only generate ssh keys and tfvars file. In case you want to customize input variables before triggering the build.
+- For advanced usecase, run the following to only generate ssh keys and .tfvars file. Then customize the .tfvars file as required and run `./deploy_only.sh`
 
   ```
   ./init_only.sh
+  ```
+
+- To deploy the cluster with cstor mayastor engine as the default volume provisioner, create the .tfvars file using `./init_only.sh` as shown above and update the `deploy_mayastor` and `extra_volume_size` parameters as shown below and then run `/deploy_only.sh`
+
+
+  ```
+  deploy_mayastor = true
+  extra_volume_size = 200
+
   ```
 
 That's pretty much it!! If you were looking for that `BIG EASY RED BUTTON` for DKP 2, this is it. Cheers!! 
