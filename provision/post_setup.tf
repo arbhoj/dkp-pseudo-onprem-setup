@@ -19,6 +19,7 @@ done
 if [ $? -eq 0 ]; then
   #Deploy Base and Optionally Konvoy
   ssh centos@${aws_instance.registry[0].public_ip} -i ${trimprefix(var.ssh_private_key_file, "../")} 'bash -s' < provision/auto_konvoy.sh $1
+  provision/get_kubeconfig.sh $1
 fi
 
 if [ $? -eq 0 ]; then
