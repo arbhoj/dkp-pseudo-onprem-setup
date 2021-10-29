@@ -101,6 +101,13 @@ sed -i 's/cloud-provider\:\ \"\"/cloud-provider\:\ \"aws\"/' deploy-dkp-${var.cl
 
 ```
 
+> TEMP FIX FOR 2.1 BUG
+
+```
+sed -i 's/\.\/run\/kubeadm\/konvoy-set-kube-proxy-configuration.sh/\/tmp\/konvoy-set-kube-proxy-configuration.sh/g' deploy-dkp-${var.cluster_name}.yaml
+sed -i 's/\/run\/kubeadm\/konvoy-set-kube-proxy-configuration.sh/\/tmp\/konvoy-set-kube-proxy-configuration.sh/g' deploy-dkp-${var.cluster_name}.yaml
+```
+
 Finally apply the deploy manifest to the bootstrap cluster to trigger the cluster deployment
 
 ```
