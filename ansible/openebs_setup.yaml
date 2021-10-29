@@ -26,7 +26,10 @@
       name: iscsid
       state: started
       enabled: yes
-    when: node_pool == "worker" 
+    when: node_pool == "worker"
+  - name: Pause for 10 seconds for system to stabilize
+    pause:
+      seconds: 10
   - name: Deploy mayastor
     block:
     - name: Label nodes for mayastor
@@ -57,8 +60,11 @@
       shell: kubectl apply -f https://raw.githubusercontent.com/openebs/Mayastor/v0.8.0/deploy/moac-deployment.yaml --dry-run=client -o yaml | kubectl apply -f - && kubectl -n mayastor rollout status deploy/moac
     - name: Deploy Data Plane
       shell: kubectl apply -f https://raw.githubusercontent.com/openebs/Mayastor/v0.8.0/deploy/mayastor-daemonset.yaml --dry-run=client -o yaml | kubectl apply -f - && kubectl -n mayastor rollout status ds/mayastor
-    - name: Sleep 60 seconds and Check status of Mayastor Node resource
-      shell: sleep 60; kubectl -n mayastor get mayastornodes
+    - name: Pause for 1 minute to make sure mayastore resources are up
+      pause:
+        minutes: 1
+    - name: Check status of Mayastor Node resource
+      shell: kubectl -n mayastor get mayastornodes
     - name: Get and register node names
       shell: kubectl get nodes --no-headers | grep -iv control | awk '{print $1}'
       register: kubenodes

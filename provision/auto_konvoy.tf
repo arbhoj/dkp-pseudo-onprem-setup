@@ -54,6 +54,7 @@ if [ $# -ne 0 ]; then
     ####TEMP FIX FOR 2.1 BUG##### 
     sed -i 's/\.\/run\/kubeadm\/konvoy-set-kube-proxy-configuration.sh/\/tmp\/konvoy-set-kube-proxy-configuration.sh/g' deploy-dkp-${var.cluster_name}.yaml
     sed -i 's/\/run\/kubeadm\/konvoy-set-kube-proxy-configuration.sh/\/tmp\/konvoy-set-kube-proxy-configuration.sh/g' deploy-dkp-${var.cluster_name}.yaml
+    head -n -3 deploy-${var.cluster_name}.yaml > tmp.yaml && mv tmp.yaml deploy-${var.cluster_name}.yaml
     ##Now apply the deploy manifest to the bootstrap cluster
     echo -e "\n\nDeploy the cluster"
     echo -e "\nkubectl apply -f deploy-dkp-${var.cluster_name}.yaml" 

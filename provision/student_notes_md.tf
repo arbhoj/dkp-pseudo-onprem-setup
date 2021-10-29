@@ -106,6 +106,7 @@ sed -i 's/cloud-provider\:\ \"\"/cloud-provider\:\ \"aws\"/' deploy-dkp-${var.cl
 ```
 sed -i 's/\.\/run\/kubeadm\/konvoy-set-kube-proxy-configuration.sh/\/tmp\/konvoy-set-kube-proxy-configuration.sh/g' deploy-dkp-${var.cluster_name}.yaml
 sed -i 's/\/run\/kubeadm\/konvoy-set-kube-proxy-configuration.sh/\/tmp\/konvoy-set-kube-proxy-configuration.sh/g' deploy-dkp-${var.cluster_name}.yaml
+head -n -3 deploy-${var.cluster_name}.yaml > tmp.yaml && mv tmp.yaml deploy-${var.cluster_name}.yaml
 ```
 
 Finally apply the deploy manifest to the bootstrap cluster to trigger the cluster deployment
