@@ -22,8 +22,8 @@ if [ $# -ne 0 ]; then
       echo -e "\n\nKommander helm chart deployed. Might take upto 30 minutes for the addon apps to be deployed"
       echo -e "\nWaiting for helmreleases to be rolled out"
       sleep 900 #Sleeping 15 minutes
-      echo -e "\nkubectl -n kommander wait --for condition=Released helmreleases --timeout 15m --all"  
-      kubectl -n kommander wait --for condition=Released helmreleases --timeout 15m --all
+      echo -e "\nkubectl -n kommander wait --for condition=Released helmreleases --timeout 1s --all"  
+      kubectl -n kommander wait --for condition=Released helmreleases --timeout 1s --all
       echo -e "\nConnect to the bootstrap server and wait for all Helm Release resources to be ready"
       echo -e "\nRun the following to watch the status of the helm releases"
       echo -e "\nwatch k get hr -A"
