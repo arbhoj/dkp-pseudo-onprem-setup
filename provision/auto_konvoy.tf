@@ -70,6 +70,10 @@ if [ $# -ne 0 ]; then
     ##Run the following command to wait till the control plane is in ready state
     echo -e "\n\nWait for cluster to be ready" 
     kubectl wait --for=condition=ControlPlaneReady "clusters/${var.cluster_name}" --timeout=20m
+
+    ##Wait 30 seconds and then delete any pod that is not in completed or ready state. This is to handle some core pods that get stuck in crash loop status
+    sleep 30
+    while IFS= read -r namespace_and_pod; do kubectl delete pods --force -n $namespace_and_pod 2>&1 | grep -iv 'warning'; done < <(kubectl get pods -A --no-headers | egrep -iv 'running|completed' | awk {'printf ("%s\t%s\n",$1,$2)'}) 
     
     ##After 5 minutes or so if there is no critical error in the above, run the following command to get the admin kubeconfig of the provisioned DKP cluster
     echo -e "\n\nGet kubeconfig of the deployed cluster" 
