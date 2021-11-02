@@ -95,4 +95,12 @@ Then run one of the following depending on the requirement:
 
   ```
 
+- If konvoy or kommander is deployed automatically via the tool by passing `konvoy` or `kommander` flags to the deploy command, then the kubeconfig file of the deployed cluster is downloaded automatically to the host from where this tool is run in the same directory. The naming convention of the file is ${CLUSTER_NAME-admin.conf}. In scenarios where kommander is deployed via the tool the connection details of the kommander portal are printed at the end of the deployment. Run the following to reprint that information
+
+  ```
+  export CLUSTER_NAME=<name of the cluster as it appears in the tfvars file> 
+  export KUBECONFIG=${CLUSTER_NAME}-admin.conf
+  ./get_cluster_details.sh
+  ```
+
 That's pretty much it!! If you were looking for that `BIG EASY RED BUTTON` for DKP 2, this is it. Cheers!! 
