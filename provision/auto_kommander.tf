@@ -21,6 +21,7 @@ if [ $# -ne 0 ]; then
       helm install -n kommander --create-namespace kommander-bootstrap kommander/kommander-bootstrap --version=${var.kommander_version} --set certManager=$(kubectl get ns cert-manager > /dev/null 2>&1 && echo "false" || echo "true")
       echo -e "\n\nKommander helm chart deployed. Might take upto 30 minutes for the addon apps to be deployed"
       echo -e "\nWaiting for helmreleases to be rolled out"
+      sleep 900 #Sleeping 15 minutes
       echo -e "\nkubectl -n kommander wait --for condition=Released helmreleases --timeout 15m --all"  
       kubectl -n kommander wait --for condition=Released helmreleases --timeout 15m --all
       echo -e "\nConnect to the bootstrap server and wait for all Helm Release resources to be ready"
@@ -30,6 +31,7 @@ if [ $# -ne 0 ]; then
       echo -e "\n./get_cluster_details.sh"
       echo -e "\nNote: Before deploying any helm charts make sure to set admin.conf as the KUBECONFIG"
       echo -e "\nE.g. export KUBECONFIG=$(pwd)/admin.conf"
+      ./get_cluster_details.sh
       echo -e "\n\n"
   fi
 fi

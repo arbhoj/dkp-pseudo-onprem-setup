@@ -14,8 +14,15 @@ if [ $# -ne 0 ]; then
     echo -e "\nRunning Konvoy image builder"
     echo -e "\n./konvoy-image provision --inventory-file /home/centos/provision/inventory.yaml  images/generic/flatcar.yaml" 
     cd /home/centos/konvoy-image-builder
-    ./konvoy-image provision --inventory-file /home/centos/provision/inventory.yaml  images/generic/${var.node_os}.yaml #Select a yaml depending on the operating system of the cluster
-    
+    . ./konvoy-image provision --inventory-file /home/centos/provision/inventory.yaml  images/generic/${var.node_os}.yaml #Select a yaml depending on the operating system of the cluster
+    ##To handle change introduced in v1.3.1 of image builder. 
+    ret=$?
+    echo $ret
+    if [ $ret -ne 0 ];then
+      echo -e "Trying the following command as the above failed. Looks like we are deploying with image builder 1.3.1+"
+      echo -e "\n./konvoy-image provision --inventory-file /home/centos/provision/inventory.yaml"
+      ./konvoy-image provision --inventory-file /home/centos/provision/inventory.yaml
+    fi
     #####################
     ###Deploy DKP Cluster#####
     ###Run these from the directory where DKP binary has been downloaded
