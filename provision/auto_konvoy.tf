@@ -12,16 +12,18 @@ if [ $# -ne 0 ]; then
     ###Build Server######
     ###Run the following from the konvoy-image builder dir https://github.com/mesosphere/konvoy-image-builder
     echo -e "\nRunning Konvoy image builder"
-    echo -e "\n./konvoy-image provision --inventory-file /home/centos/provision/inventory.yaml  images/generic/flatcar.yaml" 
+
     cd /home/centos/konvoy-image-builder
-    . ./konvoy-image provision --inventory-file /home/centos/provision/inventory.yaml  images/generic/${var.node_os}.yaml #Select a yaml depending on the operating system of the cluster
     ##To handle change introduced in v1.3.1 of image builder. 
-    ret=$?
-    echo $ret
-    if [ $ret -ne 0 ];then
-      echo -e "Trying the following command as the above failed. Looks like we are deploying with image builder 1.3.1+"
+    ##Extract konvoy image builder version 
+    export kib_ver=${substr(var.konvoy_image_builder_version,3,1)} 
+    echo "KIB Version: $${kib_ver}"
+    if [ $${kib_ver} -ge 3 ]; then
       echo -e "\n./konvoy-image provision --inventory-file /home/centos/provision/inventory.yaml"
       ./konvoy-image provision --inventory-file /home/centos/provision/inventory.yaml
+    else
+      echo -e "\n./konvoy-image provision --inventory-file /home/centos/provision/inventory.yaml  images/generic/flatcar.yaml" 
+      ./konvoy-image provision --inventory-file /home/centos/provision/inventory.yaml  images/generic/${var.node_os}.yaml
     fi
     #####################
     ###Deploy DKP Cluster#####

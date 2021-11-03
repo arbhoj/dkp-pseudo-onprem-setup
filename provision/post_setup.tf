@@ -9,10 +9,18 @@ resource "local_file" "post_setup_sh" {
   content = <<EOF
 
 #Wait for all nodes to be ready
+for control_plane_node in %{ for index, cp in aws_instance.control_plane ~}${cp.public_ip} %{ endfor ~};do
+  while [[ $CONNECTED0 != 'yes' ]];do
+    CONNECTED0=$(ssh -o BatchMode=yes -o StrictHostKeyChecking=no -o ConnectTimeout=5 ${var.ssh_username}@$control_plane_node -i ${trimprefix(var.ssh_private_key_file
+, "../")} echo yes 2>&1)
+  echo ready_control_plane_node $control_plane_node : $CONNECTED0
+  done
+done
+
 for worker_node in %{ for index, wk in aws_instance.worker ~}${wk.public_ip} %{ endfor ~};do
   while [[ $CONNECTED0 != 'yes' ]];do
     CONNECTED0=$(ssh -o BatchMode=yes -o StrictHostKeyChecking=no -o ConnectTimeout=5 ${var.ssh_username}@$worker_node -i ${trimprefix(var.ssh_private_key_file, "../")} echo yes 2>&1)
-  echo ready_node1: $CONNECTED0
+  echo ready_worker_node $worker_node : $CONNECTED0
   done
 done
 
