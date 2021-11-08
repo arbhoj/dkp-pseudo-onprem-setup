@@ -8,6 +8,7 @@ resource "local_file" "get_kubeconfig" {
   }
   content = <<EOF
 scp -i ${trimprefix(var.ssh_private_key_file, "../")} centos@${aws_instance.registry[0].public_ip}:/home/centos/admin.conf ${var.cluster_name}-admin.conf
+scp -i ${trimprefix(var.ssh_private_key_file, "../")} centos@${aws_instance.registry[0].public_ip}:/home/centos/admin.conf .
 exit
 EOF
 }
