@@ -24,6 +24,7 @@ if [ $# -ne 0 ]; then
       sleep 600
       echo -e "\nkubectl -n kommander wait --for condition=Released helmreleases --timeout 1s --all"  
       kubectl -n kommander wait --for condition=Released helmreleases --timeout 1s --all
+      echo -e "\n\n"
       ./get_cluster_details.sh
       echo -e "\n\n"
   fi
