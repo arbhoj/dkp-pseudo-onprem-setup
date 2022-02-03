@@ -6,10 +6,11 @@
   - name: Disable SELinux
     ansible.posix.selinux:
       state: disabled
-  - name: Install yum utils
+  - name: Install yum utils and epel-release
     yum:
       name:
       - yum-utils
+      - epel-release
   - name: Configure Docker Repo
     command: yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
   - name: Install packages
@@ -22,6 +23,7 @@
       - git
       - python-docker
       - curl
+      - ansible
       state: present
   - name: Create docker group
     group:
@@ -55,10 +57,10 @@
       mode: 0711
   - name: Local user configs
     block:
-    - name: Create ssl certs for image registry
-      script: create_registrycerts.sh
-      args:
-        creates: ca.crt
+    #- name: Create ssl certs for image registry
+    #  script: create_registrycerts.sh
+    #  args:
+    #    creates: ca.crt
     - name: Download helm_install Script
       get_url:
         url: https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3
@@ -69,46 +71,6 @@
       args:
         creates: /usr/local/bin/helm
       ignore_errors: yes
-    ##This is to handle the variance in the naming convention followed in v1.0.0 and that in newer versions
-    ##################################################################
-    - name: Download Konvoy Image Builder for v1.0.0
-      get_url:
-        url: "https://github.com/mesosphere/konvoy-image-builder/releases/download/{{konvoy_image_builder_version}}/konvoy-image-bundle-{{konvoy_image_builder_version}}_linux.tar.gz"
-        dest: "/tmp/konvoy-image-bundle-{{konvoy_image_builder_version}}_linux.tar.gz"
-      when: konvoy_image_builder_version == "v1.0.0"
-    - name: Extract Konvoy Image Builder
-      unarchive:
-        src: "/tmp/konvoy-image-bundle-{{konvoy_image_builder_version}}_linux.tar.gz"
-        dest: /home/centos
-        owner: centos
-        mode: 0700
-        remote_src: yes
-      when: konvoy_image_builder_version == "v1.0.0"
-    - name: Download Konvoy Image Builder for > v1.0.0 
-      get_url:
-        url: "https://github.com/mesosphere/konvoy-image-builder/releases/download/{{konvoy_image_builder_version}}/konvoy-image-bundle-{{konvoy_image_builder_version}}_linux_amd64.tar.gz"
-        dest: "/tmp/konvoy-image-bundle-{{konvoy_image_builder_version}}_linux.tar.gz"
-      when: konvoy_image_builder_version != "v1.0.0"
-    - name: Create konvoy-image-bundle-{{konvoy_image_builder_version}}_linux for version greater than v1.0.0
-      file:
-        path: /home/centos/konvoy-image-bundle-{{konvoy_image_builder_version}}_linux
-        state: directory
-        mode: 0755
-        owner: centos
-        group: centos
-    - name: Extract Konvoy Image Builder
-      unarchive:
-        src: "/tmp/konvoy-image-bundle-{{konvoy_image_builder_version}}_linux.tar.gz"
-        dest: /home/centos/konvoy-image-bundle-{{konvoy_image_builder_version}}_linux
-        owner: centos
-        mode: 0700
-        remote_src: yes
-      when: konvoy_image_builder_version != "v1.0.0"
-    ##################################################################
-    - name: Rename to konvoy-image-builder
-      command: mv /home/centos/konvoy-image-bundle-{{konvoy_image_builder_version}}_linux /home/centos/konvoy-image-builder
-      args:
-        creates: /home/centos/konvoy-image-builder
   #URL is not reachable without signing in hence for now we will copy the file in the ansible controller under the home dir
   #  - name: Download DKP Installer
   #    get_url:
@@ -127,6 +89,20 @@
     - name: Extract Konvoy DKP
       unarchive:
         src: "/tmp/dkp_{{dkp_version}}_linux_amd64.tar.gz"
+        dest: /home/centos
+        owner: centos
+        mode: 0700
+        remote_src: yes
+    - name: Copy Kommander Installer tar from Ansible Controller
+      copy:
+        src: ~/kommander_{{kommander_version}}_linux_amd64.tar.gz
+        dest: /tmp
+        owner: centos
+        group: centos
+        mode: 0700
+    - name: Extract Kommander
+      unarchive:
+        src: "/tmp/kommander_{{kommander_version}}_linux_amd64.tar.gz"
         dest: /home/centos
         owner: centos
         mode: 0700
@@ -227,7 +203,7 @@
       ports:
       - "80:3080"
       volumes:
-      - /home/centos/notes:/data
+       - /home/centos/notes:/data
       container_default_behavior: compatibility
   - name: Start Registry Server
     community.docker.docker_container:
@@ -236,10 +212,10 @@
       state: started
       ports:
       - "5000:5000"
-      volumes:
-      - /home/centos/certs:/certs
+      #volumes:
+      #- /home/centos/certs:/certs
       env:
         REGISTRY_HTTP_ADDR: "0.0.0.0:5000"
-        REGISTRY_HTTP_TLS_CERTIFICATE: "/certs/client-cert.crt"
-        REGISTRY_HTTP_TLS_KEY: "/certs/client-key.key"
+        #REGISTRY_HTTP_TLS_CERTIFICATE: "/certs/client-cert.crt"
+        #REGISTRY_HTTP_TLS_KEY: "/certs/client-key.key"
       container_default_behavior: compatibility

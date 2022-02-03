@@ -17,7 +17,7 @@ spec:
   hosts:
     # Create as many of these as needed to match your infrastructure
 %{ for index, cp in aws_instance.control_plane ~}
-  - address: ${cp.public_ip}
+  - address: ${cp.private_ip}
 %{ endfor ~}
   sshConfig:
     port: 22
@@ -37,7 +37,7 @@ metadata:
 spec:
   hosts:
 %{ for index, wk in aws_instance.worker ~}
-  - address: ${wk.public_ip}
+  - address: ${wk.private_ip}
 %{ endfor ~}
   sshConfig:
     port: 22

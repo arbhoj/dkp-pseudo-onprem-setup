@@ -26,10 +26,11 @@ aws_region = "us-west-2"
 aws_availability_zones = ["us-west-2c"]
 node_os = "flatcar"
 deploy_mayastor = false
-konvoy_image_builder_version = "v1.3.1"
-kommander_version = "v2.1.0-beta.1"
-dkp_version = "v2.1.0-beta.1"
-node_ami = "ami-0e6702240b9797e12"
+#konvoy_image_builder_version = "v1.3.1"
+kommander_version = "v2.1.1"
+dkp_version = "v2.1.1"
+##Flatcar-stable-3033.2.0-hvm-1716ad1c-deff-42e5-86bc-228658463d0e 
+node_ami = "ami-0b701de195dd6374d"
 registry_ami = "ami-0686851c4e7b1a8e1"
 ansible_python_interpreter = "/opt/bin/python"
 ssh_username = "core"

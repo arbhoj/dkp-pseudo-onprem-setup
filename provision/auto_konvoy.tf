@@ -9,22 +9,23 @@ resource "local_file" "auto_konvoy_sh" {
   content = <<EOF
 if [ $# -ne 0 ]; then
   if [ $1 = "konvoy" ] || [ $1 = "kommander" ]; then
+    ##Commented KIB as it runs as a part of the deployment process
     ###Build Server######
     ###Run the following from the konvoy-image builder dir https://github.com/mesosphere/konvoy-image-builder
-    echo -e "\nRunning Konvoy image builder"
+    #echo -e "\nRunning Konvoy image builder"
 
-    cd /home/centos/konvoy-image-builder
+    #cd /home/centos/konvoy-image-builder
     ##To handle change introduced in v1.3.1 of image builder. 
     ##Extract konvoy image builder version 
-    export kib_ver=${substr(var.konvoy_image_builder_version,3,1)} 
-    echo "KIB Version: $${kib_ver}"
-    if [ $${kib_ver} -ge 3 ]; then
-      echo -e "\n./konvoy-image provision --inventory-file /home/centos/provision/inventory.yaml"
-      ./konvoy-image provision --inventory-file /home/centos/provision/inventory.yaml
-    else
-      echo -e "\n./konvoy-image provision --inventory-file /home/centos/provision/inventory.yaml  images/generic/flatcar.yaml" 
-      ./konvoy-image provision --inventory-file /home/centos/provision/inventory.yaml  images/generic/${var.node_os}.yaml
-    fi
+    #export kib_ver=${substr(var.konvoy_image_builder_version,3,1)} 
+    #echo "KIB Version: $${kib_ver}"
+    #if [ $${kib_ver} -ge 3 ]; then
+    #  echo -e "\n./konvoy-image provision --inventory-file /home/centos/provision/inventory.yaml"
+    #  ./konvoy-image provision --inventory-file /home/centos/provision/inventory.yaml
+    #else
+    #  echo -e "\n./konvoy-image provision --inventory-file /home/centos/provision/inventory.yaml  images/generic/flatcar.yaml" 
+    #  ./konvoy-image provision --inventory-file /home/centos/provision/inventory.yaml  images/generic/${var.node_os}.yaml
+    #fi
     #####################
     ###Deploy DKP Cluster#####
     ###Run these from the directory where DKP binary has been downloaded

@@ -13,6 +13,11 @@ provider "aws" {
   skip_metadata_api_check = var.skip_metadata_api_check
 }
 
+variable internal_lb {
+  description = "Defines if the an internal lb needs to be created for control plane"
+  default = "false"
+}
+
 variable konvoy_image_builder_version {
   description = "Version for konvoy image builder"
   default = "v1.0.0"   
@@ -692,7 +697,7 @@ resource "aws_security_group" "konvoy_control_plane" {
 }
 
 resource "aws_elb" "konvoy_control_plane" {
-  internal                  = false
+  internal                  = var.internal_lb
   security_groups           = [aws_security_group.konvoy_private.id, aws_security_group.konvoy_control_plane.id]
   subnets                   = [aws_subnet.konvoy_public.id]
   connection_draining       = true
