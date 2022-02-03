@@ -9,6 +9,12 @@ resource "local_file" "auto_kommander_sh" {
   content = <<EOF
 if [ $# -ne 0 ]; then
   if [ $1 = "kommander" ]; then
+
+      ##Set admin.conf as the current KUBECONFIG
+      echo -e "\n\nSet the downloaded kubeconfig as the current KUBECONFIG"
+      echo -e "\nexport KUBECONFIG=$(pwd)/admin.conf"
+      export KUBECONFIG=$(pwd)/admin.conf
+      ###Deploy Kommander#####
       ##Install cert-manager
       echo -e "\nInstalling cert-manager"
       echo -e "\nhelm repo add jetstack https://charts.jetstack.io"
@@ -19,13 +25,8 @@ if [ $# -ne 0 ]; then
       kubectl apply -f https://github.com/jetstack/cert-manager/releases/download/v1.6.0/cert-manager.crds.yaml
       echo -e "\nhelm install cert-manager jetstack/cert-manager --namespace cert-manager --create-namespace --version v1.6.0" 
       helm install cert-manager jetstack/cert-manager --namespace cert-manager --create-namespace --version v1.6.0
-      echo -e "\n\n Deploy Kommander"
-      ##Set admin.conf as the current KUBECONFIG
-      echo -e "\n\nSet the downloaded kubeconfig as the current KUBECONFIG"
-      echo -e "\nexport KUBECONFIG=$(pwd)/admin.conf"
-      export KUBECONFIG=$(pwd)/admin.conf
-      ###Deploy Kommander#####
       #export VERSION=${var.kommander_version}
+      echo -e "\n\n Deploy Kommander"
       #helm repo add kommander https://mesosphere.github.io/kommander/charts
       #helm repo update
       #helm install -n kommander --create-namespace kommander-bootstrap kommander/kommander-bootstrap --version=${var.kommander_version} --set certManager=$(kubectl get ns cert-manager > /dev/null 2>&1 && echo "false" || echo "true")
