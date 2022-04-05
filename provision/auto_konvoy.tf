@@ -49,11 +49,11 @@ if [ $# -ne 0 ]; then
     #Note if deploying a flatcar cluster then add the --os-hint=flatcar flag like this:
     echo -e "\n\nCreate manifest to deploy cluster"
     if [ ${var.node_os} == "flatcar" ]; then
-      echo -e "\n./dkp create cluster preprovisioned --cluster-name ${var.cluster_name} --control-plane-endpoint-host ${aws_elb.konvoy_control_plane.dns_name} --os-hint=flatcar --control-plane-replicas 1 --worker-replicas ${var.worker_node_count} --dry-run -o yaml > deploy-dkp-${var.cluster_name}.yaml"
-      ./dkp create cluster preprovisioned --cluster-name ${var.cluster_name} --control-plane-endpoint-host ${aws_elb.konvoy_control_plane.dns_name} --os-hint=flatcar --control-plane-replicas 1 --worker-replicas 4 --dry-run -o yaml > deploy-dkp-${var.cluster_name}.yaml
+      echo -e "\n./dkp create cluster preprovisioned --cluster-name ${var.cluster_name} --control-plane-endpoint-host ${aws_elb.konvoy_control_plane.dns_name} --os-hint=flatcar --control-plane-replicas ${var.control_plane_count} --worker-replicas ${var.worker_node_count} --dry-run -o yaml > deploy-dkp-${var.cluster_name}.yaml"
+      ./dkp create cluster preprovisioned --cluster-name ${var.cluster_name} --control-plane-endpoint-host ${aws_elb.konvoy_control_plane.dns_name} --os-hint=flatcar --control-plane-replicas ${var.control_plane_count} --worker-replicas ${var.worker_node_count} --dry-run -o yaml > deploy-dkp-${var.cluster_name}.yaml
     else    
-      echo -e "\n./dkp create cluster preprovisioned --cluster-name ${var.cluster_name} --control-plane-endpoint-host ${aws_elb.konvoy_control_plane.dns_name} --control-plane-replicas 1 --worker-replicas 4 --dry-run -o yaml > deploy-dkp-${var.cluster_name}.yaml"
-      ./dkp create cluster preprovisioned --cluster-name ${var.cluster_name} --control-plane-endpoint-host ${aws_elb.konvoy_control_plane.dns_name} --control-plane-replicas 1 --worker-replicas 4 --dry-run -o yaml > deploy-dkp-${var.cluster_name}.yaml
+      echo -e "\n./dkp create cluster preprovisioned --cluster-name ${var.cluster_name} --control-plane-endpoint-host ${aws_elb.konvoy_control_plane.dns_name} --control-plane-replicas ${var.control_plane_count} --worker-replicas ${var.worker_node_count} --dry-run -o yaml > deploy-dkp-${var.cluster_name}.yaml"
+      ./dkp create cluster preprovisioned --cluster-name ${var.cluster_name} --control-plane-endpoint-host ${aws_elb.konvoy_control_plane.dns_name} --control-plane-replicas ${var.control_plane_count} --worker-replicas 4 --dry-run -o yaml > deploy-dkp-${var.cluster_name}.yaml
     fi
     ##Update all occurances of cloud-provider="" to cloud-provider=aws
     echo -e "\n\nSet cloud-provider to aws"
@@ -67,8 +67,8 @@ if [ $# -ne 0 ]; then
     #head -n -3 deploy-${var.cluster_name}.yaml > tmp.yaml && mv tmp.yaml deploy-${var.cluster_name}.yaml
     ##Now apply the deploy manifest to the bootstrap cluster
     echo -e "\n\nDeploy the cluster"
-    echo -e "\nkubectl apply -f deploy-dkp-${var.cluster_name}.yaml" 
-    kubectl apply -f deploy-dkp-${var.cluster_name}.yaml
+    echo -e "\nkubectl create -f deploy-dkp-${var.cluster_name}.yaml" 
+    kubectl create -f deploy-dkp-${var.cluster_name}.yaml
     
     ##Run the following command to wait till the control plane is in ready state
     echo -e "\n\nWait for cluster to be ready" 
