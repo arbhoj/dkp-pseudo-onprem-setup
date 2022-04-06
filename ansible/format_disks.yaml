@@ -7,9 +7,10 @@
     yum:
       name:
       - lvm2
+      use_backend: dnf
     ignore_errors: yes      
   - name: Format disks for worker nodes
-    script: format_disks.sh nvme1n1
+    script: ./format_disks.sh nvme1n1
     when: node_pool == "worker"
   - name: Enable and start iscsi daemon
     service:

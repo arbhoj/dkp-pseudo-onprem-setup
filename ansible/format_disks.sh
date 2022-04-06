@@ -1,4 +1,3 @@
-cat <<-'EOF' > configure_dkp_disks.sh
 #!/bin/bash
 ##Note This script accepts the name of the raw disk as an input parameter
 ## e.g. ./configure_dkp_disks.sh sdh
@@ -87,7 +86,3 @@ sudo mkdir /mnt/disks/11100001
 sudo mount -t ext4 /dev/mapper/$VG-11100001 /mnt/disks/11100001
 echo UUID=`sudo blkid -s UUID -o value /dev/mapper/$VG-11100001` /mnt/disks/11100001 ext4 defaults 0 0 | sudo tee -a /etc/fstab
 fi
-EOF
-
-chmod +x configure_dkp_disks.sh
-
