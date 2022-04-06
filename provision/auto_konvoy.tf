@@ -89,17 +89,6 @@ if [ $# -ne 0 ]; then
     echo -e "\nexport KUBECONFIG=$(pwd)/admin.conf"  
     export KUBECONFIG=$(pwd)/admin.conf
     
-    ##Deploy awsebs if mayastor is not enabled
-    if [ ${var.deploy_mayastor} == false ]; then
-      echo -e "\n\n Deploy awsebscsiprovisioner" 
-      helm repo add d2iq-stable https://mesosphere.github.io/charts/stable
-      helm repo update
-      helm install awsebscsiprovisioner d2iq-stable/awsebscsiprovisioner --version 0.5.0 --values awsebscsiprovisioner_values.yaml 
-    fi
-    ##Mark localvolumeprovisioner as non-default sc
-    echo "Unset localvolumeprovisioner as default provisioner"
-    kubectl patch sc localvolumeprovisioner -p '{"metadata":{"annotations":{"storageclass.kubernetes.io/is-default-class":"false"}}}'
-  
     echo -e "\n\nKonvoy cluster deployed"
     echo -e "\nConnect to the bootstrap server and export admin.conf as the KUBECONFIG"
     echo -e "\nexport KUBECONFIG=$(pwd)/admin.conf"
