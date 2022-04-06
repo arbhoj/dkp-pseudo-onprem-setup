@@ -21,16 +21,16 @@ if [ $# -ne 0 ]; then
       helm repo add jetstack https://charts.jetstack.io
       echo -e "\nhelm repo update"
       helm repo update
-      echo -e "\nkubectl apply -f https://github.com/jetstack/cert-manager/releases/download/v1.6.0/cert-manager.crds.yaml"
-      kubectl apply -f https://github.com/jetstack/cert-manager/releases/download/v1.6.0/cert-manager.crds.yaml
-      echo -e "\nhelm install cert-manager jetstack/cert-manager --namespace cert-manager --create-namespace --version v1.6.0" 
-      helm install cert-manager jetstack/cert-manager --namespace cert-manager --create-namespace --version v1.6.0
+      echo -e "\nkubectl apply -f https://github.com/jetstack/cert-manager/releases/download/v1.7.1/cert-manager.crds.yaml"
+      kubectl apply -f https://github.com/jetstack/cert-manager/releases/download/v1.7.1/cert-manager.crds.yaml
+      echo -e "\nhelm install cert-manager jetstack/cert-manager --namespace cert-manager --create-namespace --version v1.7.1" 
+      helm install cert-manager jetstack/cert-manager --namespace cert-manager --create-namespace --version v1.7.1
       #export VERSION=${var.kommander_version}
       echo -e "\n\n Deploy Kommander"
       #helm repo add kommander https://mesosphere.github.io/kommander/charts
       #helm repo update
       #helm install -n kommander --create-namespace kommander-bootstrap kommander/kommander-bootstrap --version=${var.kommander_version} --set certManager=$(kubectl get ns cert-manager > /dev/null 2>&1 && echo "false" || echo "true")
-      ./kommander install
+      ./dkp install kommander
       echo -e "\n\nKommander base deployed."
       echo -e "\nWaiting for helmreleases to be rolled out. Sleeping 10 minutes before checking status" 
       sleep 600

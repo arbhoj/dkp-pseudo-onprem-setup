@@ -93,20 +93,20 @@
         owner: centos
         mode: 0700
         remote_src: yes
-    - name: Copy Kommander Installer tar from Ansible Controller
-      copy:
-        src: ~/kommander_{{kommander_version}}_linux_amd64.tar.gz
-        dest: /tmp
-        owner: centos
-        group: centos
-        mode: 0700
-    - name: Extract Kommander
-      unarchive:
-        src: "/tmp/kommander_{{kommander_version}}_linux_amd64.tar.gz"
-        dest: /home/centos
-        owner: centos
-        mode: 0700
-        remote_src: yes
+    #- name: Copy Kommander Installer tar from Ansible Controller
+    #  copy:
+    #    src: ~/kommander_{{kommander_version}}_linux_amd64.tar.gz
+    #    dest: /tmp
+    #    owner: centos
+    #    group: centos
+    #    mode: 0700
+    #- name: Extract Kommander
+    #  unarchive:
+    #    src: "/tmp/kommander_{{kommander_version}}_linux_amd64.tar.gz"
+    #    dest: /home/centos
+    #    owner: centos
+    #    mode: 0700
+    #    remote_src: yes
     - name: Create provision directory
       file:
         path: /home/centos/provision

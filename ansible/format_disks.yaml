@@ -3,8 +3,13 @@
   gather_facts: no
   become: yes
   tasks:
+  - name: Install packages
+    yum:
+      name:
+      - lvm2
+    ignore_errors: yes      
   - name: Format disks for worker nodes
-    script: format_disks.sh
+    script: format_disks.sh nvme1n1
     when: node_pool == "worker"
   - name: Enable and start iscsi daemon
     service:
