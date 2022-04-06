@@ -3,12 +3,28 @@
   gather_facts: no
   become: yes
   tasks:
+  - name: Flatcar no update
+    changed_when: false
+    script: files/no-update-flatcar.sh
+  - name: exec bootstrap python
+    changed_when: false
+    script: files/bootstrap-flatcar.sh
+  - name: check for flatcar python
+    raw: stat /opt/bin/.bootstrapped
+    changed_when: false
+    failed_when: false
+    register: flatcar_bootstrapped
+  - name: change python if bootstrapped
+    set_fact:
+      ansible_python_interpreter: /opt/bin/python
+    when: flatcar_bootstrapped.rc == 0
   - name: Install packages
     yum:
       name:
       - lvm2
       use_backend: dnf
-    ignore_errors: yes      
+    ignore_errors: yes
+    when: ansible_user != "core"      
   - name: Format disks for worker nodes
     script: ./format_disks.sh nvme1n1
     when: node_pool == "worker"
