@@ -1,17 +1,28 @@
 terraform {
   required_version = ">= 0.12"
+  required_providers {
+    ct = {
+      source  = "poseidon/ct"
+      version = "0.7.1"
+    }
+    template = {
+      source  = "hashicorp/template"
+      version = "~> 2.2.0"
+    }
+  }
 }
-
 
 locals {
   public_subnet_range        = var.vpc_cidr
   cluster_name               = var.cluster_name
 }
 
+
 provider "aws" {
   region                  = var.aws_region
   skip_metadata_api_check = var.skip_metadata_api_check
 }
+
 
 variable internal_lb {
   description = "Defines if the an internal lb needs to be created for control plane"
@@ -474,6 +485,7 @@ resource "aws_instance" "control_plane" {
   source_dest_check           = "false"
   associate_public_ip_address = "true"
   iam_instance_profile        = "${local.cluster_name}-node-profile"
+  user_data                   = data.ct_config.custom_ignition[0].rendered 
 
   root_block_device {
     volume_size           = var.control_plane_root_volume_size
@@ -542,7 +554,8 @@ resource "aws_instance" "worker" {
   availability_zone           = var.aws_availability_zones[0]
   source_dest_check           = "false"
   associate_public_ip_address = "true"
-  iam_instance_profile        = "${local.cluster_name}-node-profile" 
+  iam_instance_profile        = "${local.cluster_name}-node-profile"
+  user_data                   = data.ct_config.custom_ignition[0].rendered
 
   tags = "${merge(
     var.tags,
@@ -722,6 +735,16 @@ resource "aws_elb" "konvoy_control_plane" {
   instances = aws_instance.control_plane.*.id
 
   tags = var.tags
+}
+
+data "ct_config" "custom_ignition" {
+  count = 1
+  content  = var.node_os == "flatcar" ? data.local_file.custom_ignition[0].content : ""
+}
+
+data "local_file" "custom_ignition" {
+  count = 1
+  filename = "${path.module}/cl/ignition_configs.yaml" 
 }
 
 output "kube_apiserver_address" {

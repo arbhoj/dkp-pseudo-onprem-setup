@@ -62,8 +62,8 @@ if [ $# -ne 0 ]; then
     #sed -i 's/konvoy.d2iq.io\/csi\:\ local-volume-provisioner/konvoy.d2iq.io\/csi\:\ aws-ebs/' deploy-dkp-${var.cluster_name}.yaml
     #sed -i 's/konvoy.d2iq.io\/provider\:\ preprovisioned/konvoy.d2iq.io\/provider\:\ aws/' deploy-dkp-student1-dkp.yaml
     ####TEMP FIX FOR 2.1 BUG##### 
-    sed -i 's/\.\/run\/kubeadm\/konvoy-set-kube-proxy-configuration.sh/\/tmp\/konvoy-set-kube-proxy-configuration.sh/g' deploy-dkp-${var.cluster_name}.yaml
-    sed -i 's/\/run\/kubeadm\/konvoy-set-kube-proxy-configuration.sh/\/tmp\/konvoy-set-kube-proxy-configuration.sh/g' deploy-dkp-${var.cluster_name}.yaml
+    #sed -i 's/\.\/run\/kubeadm\/konvoy-set-kube-proxy-configuration.sh/\/tmp\/konvoy-set-kube-proxy-configuration.sh/g' deploy-dkp-${var.cluster_name}.yaml
+    #sed -i 's/\/run\/kubeadm\/konvoy-set-kube-proxy-configuration.sh/\/tmp\/konvoy-set-kube-proxy-configuration.sh/g' deploy-dkp-${var.cluster_name}.yaml
     #head -n -3 deploy-${var.cluster_name}.yaml > tmp.yaml && mv tmp.yaml deploy-${var.cluster_name}.yaml
     ##Now apply the deploy manifest to the bootstrap cluster
     echo -e "\n\nDeploy the cluster"
