@@ -1,0 +1,5 @@
+storage:
+  files:
+    - path: /etc/flatcar-cgroupv1
+      filesystem: root
+      mode: 0444
