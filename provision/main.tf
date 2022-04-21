@@ -95,6 +95,10 @@ description = "Size of the extra volume that will be attached to all the worker 
   default     = 500
 }
 
+variable "create_extra_control_volumes" {
+  description = "Whether to create extra volumes for control nodes"
+  default     = false
+}
 
 variable "skip_metadata_api_check" {
   description = "Prevents Terraform from authenticating via the Metadata API"
@@ -631,6 +635,34 @@ resource "aws_volume_attachment" "worker_extra_volume" {
     ignore_changes = [instance_id]
   }
 }
+
+####Arvind Temp Single Node Test####
+resource "aws_ebs_volume" "control_extra_volume" {
+  count = var.create_extra_control_volumes ? var.control_plane_count: 0
+  availability_zone = var.aws_availability_zones[0]
+  size= var.extra_volume_size
+  tags = "${merge(
+    var.tags,
+    tomap({
+      "Name": "${local.cluster_name}-control-plane-${count.index}",
+      "konvoy/nodeRoles": "control_plane",
+      }
+    )
+  )}"
+}
+
+resource "aws_volume_attachment" "control_extra_volume" {
+  count = var.create_extra_control_volumes ? var.control_plane_count: 0
+  device_name  = "/dev/sdh"
+  volume_id    = element(aws_ebs_volume.control_extra_volume.*.id, count.index)
+  instance_id  = element(aws_instance.control_plane.*.id, count.index)
+  force_detach = true
+
+  lifecycle {
+    ignore_changes = [instance_id]
+  }
+}
+##########################################################
 
 resource "aws_instance" "registry" {
   count                       = 1
