@@ -72,7 +72,7 @@ if [ $# -ne 0 ]; then
     
     ##Run the following command to wait till the control plane is in ready state
     echo -e "\n\nWait for cluster to be ready" 
-    kubectl wait --for=condition=ControlPlaneReady "clusters/${var.cluster_name}" --timeout=20m
+    kubectl wait --for=condition=ControlPlaneReady "clusters/${var.cluster_name}" --timeout=10m
 
     ##Wait 30 seconds and then delete any pod that is not in completed or ready state. This is to handle some core pods that get stuck in crash loop status
     sleep 30
