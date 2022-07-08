@@ -16,6 +16,7 @@ all:
     ansible_ssh_private_key_file: ${trimprefix(var.ssh_private_key_file, "../")}
     registry_server: "${aws_instance.registry[0].private_ip}:5000" #Note: Use the private ip of the registry server
     cluster_name: ${var.cluster_name}
+    format_disks: ${var.format_disks}
   hosts:
 %{ for index, cp in aws_instance.control_plane ~}
     ${cp.private_ip}:

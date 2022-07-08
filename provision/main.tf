@@ -23,6 +23,10 @@ provider "aws" {
   skip_metadata_api_check = var.skip_metadata_api_check
 }
 
+variable format_disks {
+  description = "Flag to indicate whether disks have to be formatted"
+  default = true
+}
 
 variable internal_lb {
   description = "Defines if the an internal lb needs to be created for control plane"
@@ -484,7 +488,7 @@ resource "aws_instance" "control_plane" {
   subnet_id                   = aws_subnet.konvoy_public.id
   key_name                    = local.cluster_name
   ami                         = var.node_ami
-  instance_type               = "m5.2xlarge"
+  instance_type               = "m5.8xlarge"
   availability_zone           = var.aws_availability_zones[0]
   source_dest_check           = "false"
   associate_public_ip_address = "true"

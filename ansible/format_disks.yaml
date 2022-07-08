@@ -27,7 +27,9 @@
     when: ansible_user != "core"      
   - name: Format disks for worker nodes
     script: ./format_disks.sh nvme1n1
-    when: node_pool == "worker"
+    when:
+    - node_pool == "worker"
+    - format_disks
   - name: Format disks for control nodes
     script: format_disks_control.sh nvme1n1
     when: node_pool == "control"
