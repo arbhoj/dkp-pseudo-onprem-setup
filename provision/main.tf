@@ -53,7 +53,7 @@ variable kommander_version {
 
 variable kubectl_version { 
   description = "Kubectl Version"
-  default = "v1.22.0"
+  default = "v1.26.0"
 
 }
 

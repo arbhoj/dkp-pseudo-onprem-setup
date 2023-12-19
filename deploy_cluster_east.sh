@@ -21,18 +21,19 @@ tags = {
   "owner" : "$USER",
   "expiration" : "32h"
 }
-control_plane_count = 3
+control_plane_count = 1
 worker_node_count = 4
-aws_region = "us-west-2"
-aws_availability_zones = ["us-east-1c"]
-node_ami = "ami-00e87074e52e6c9f9"
-registry_ami = "ami-00e87074e52e6c9f9"
+aws_region = "us-east-1"
+aws_availability_zones = ["us-east-1a"]
+#node_ami = "ami-0686851c4e7b1a8e1"
+node_ami = "ami-0892d3c7ee96c0bf7"
+registry_ami = "ami-0686851c4e7b1a8e1"
 #For Flatcar# ansible_python_interpreter = "/opt/bin/python"
 #For RHEL# /usr/libexec/platform-python
-ssh_username = "centos"
-node_os = "centos"
+ssh_username = "ubuntu"
+node_os = "ubuntu"
 deploy_mayastor = false
-dkp_version = "v2.2.0-rc.9"
+dkp_version = "v2.6.1"
 create_iam_instance_profile = true
 cluster_name = "$CLUSTER_NAME"
 ssh_private_key_file = "../$CLUSTER_NAME"

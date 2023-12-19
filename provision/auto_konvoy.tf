@@ -55,10 +55,11 @@ if [ $# -ne 0 ]; then
       echo -e "\n./dkp create cluster preprovisioned --cluster-name ${var.cluster_name} --control-plane-endpoint-host ${aws_elb.konvoy_control_plane.dns_name} --control-plane-replicas ${var.control_plane_count} --worker-replicas ${var.worker_node_count} --dry-run -o yaml > deploy-dkp-${var.cluster_name}.yaml"
       ./dkp create cluster preprovisioned --cluster-name ${var.cluster_name} --control-plane-endpoint-host ${aws_elb.konvoy_control_plane.dns_name} --control-plane-replicas ${var.control_plane_count} --worker-replicas 4 --dry-run -o yaml > deploy-dkp-${var.cluster_name}.yaml
     fi
+    ####Note: Not doing this anymore 
     ##Update all occurances of cloud-provider="" to cloud-provider=aws
-    echo -e "\n\nSet cloud-provider to aws"
-    echo -e "\nsed -i 's/cloud-provider\:\ \"\"/cloud-provider\:\ \"aws\"/' deploy-dkp-${var.cluster_name}.yaml"
-    sed -i 's/cloud-provider\:\ \"\"/cloud-provider\:\ \"aws\"/' deploy-dkp-${var.cluster_name}.yaml
+    #echo -e "\n\nSet cloud-provider to aws"
+    #echo -e "\nsed -i 's/cloud-provider\:\ \"\"/cloud-provider\:\ \"aws\"/' deploy-dkp-${var.cluster_name}.yaml"
+    #sed -i 's/cloud-provider\:\ \"\"/cloud-provider\:\ \"aws\"/' deploy-dkp-${var.cluster_name}.yaml
     #sed -i 's/konvoy.d2iq.io\/csi\:\ local-volume-provisioner/konvoy.d2iq.io\/csi\:\ aws-ebs/' deploy-dkp-${var.cluster_name}.yaml
     #sed -i 's/konvoy.d2iq.io\/provider\:\ preprovisioned/konvoy.d2iq.io\/provider\:\ aws/' deploy-dkp-student1-dkp.yaml
     ####TEMP FIX FOR 2.1 BUG##### 
