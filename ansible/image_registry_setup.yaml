@@ -52,7 +52,7 @@
       daemon_reload: yes
   - name: Download and configure kubectl
     get_url:
-      url: "https://dl.k8s.io/release/{{kubectl_version}}/bin/linux/amd64/kubectl"
+      url: "https://cdn.dl.k8s.io/release/{{kubectl_version}}/bin/linux/amd64/kubectl"
       dest: /usr/local/bin/kubectl
       mode: 0711
   - name: Local user configs

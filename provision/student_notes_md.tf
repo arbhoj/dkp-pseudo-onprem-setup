@@ -49,5 +49,35 @@ chmod 600 ${trimprefix(var.ssh_private_key_file, "../")}
 ssh centos@${aws_instance.registry[0].public_ip} -i ${trimprefix(var.ssh_private_key_file, "../")}
 ```
 
+> Note: Apply the following metallb config (either via ClusterResourceSet or directly to the cluster after it is built). We are reusing worker node IPs as we don't want to reserve additional IPs for a lab environment and these IPs are routable.  
+```
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  namespace: metallb-system
+  name: config
+data:
+  config: |
+    address-pools:
+    - name: default
+      protocol: layer2
+      addresses:
+%{ for index, wk in aws_instance.worker ~}
+      - ${wk.private_ip}/32
+%{ endfor ~}
+```
+
+> Note: Once Kommander is provisioned use sshuttle or ssh socks5 proxy to tunnel to the bootstrap node and access the dkp dashboard from the web browser. This is needed as only the bootstrap node has a public IP.
+
+e.g.:
+```
+# Install
+pip3 install sshuttle
+
+# Connect
+eval `ssh-agent`
+ssh-add ${trimprefix(var.ssh_private_key_file, "../")}
+sudo sshuttle -r  centos@${aws_instance.registry[0].public_ip} 0/0 
+```
 EOF
 }
