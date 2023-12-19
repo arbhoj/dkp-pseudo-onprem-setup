@@ -55,6 +55,7 @@
       url: "https://cdn.dl.k8s.io/release/{{kubectl_version}}/bin/linux/amd64/kubectl"
       dest: /usr/local/bin/kubectl
       mode: 0711
+      validate_certs: false
   - name: Local user configs
     block:
     #- name: Create ssl certs for image registry
