@@ -9,7 +9,7 @@ resource "local_file" "dkp_2_install_md" {
   content = <<EOT
 # DKP Enablement - Pre-Provisioned ${var.cluster_name}
 
-The goal of this session is to provide a self paced, hands on enablement experience on DKP (D2iQ Kubernetes Platform) by walking through the process of building a fully functional DKP cluster from scratch using the pre-provisioned CAPI (Cluster API) provider and form a solid foundation on not just DKP but also Cluster API.
+The goal of this module is to provide a self paced, hands on enablement experience on DKP (D2iQ Kubernetes Platform) by walking through the process of building a fully functional DKP cluster from scratch using the pre-provisioned CAPI (Cluster API) provider and form a solid foundation on not just DKP but also Cluster API.
 
 Let's begin by reviewing the environment details and connecting to the bootstrap/jump server using the connection details below. The required nodes and a Control Plane load-balancer have already been provisioned for lab exercises.
 > Note: Only the bootstrap/jumpbox node has a public IP and it already has all the required CLIs installed.
@@ -600,7 +600,7 @@ Now take a moment to open all the application dahboards that are deployed and co
 These can be accessed by clicking on the `Cluster` nav-bar item as shown below.
 ![Dashboards](./images/dashboards.png)
 
-Well, that's it for this session. We started from scratch and built a fully functional production ready cluster in this session. In the next session we will focus on DKP Enterprise and more Fleet Management Capabilities.
+Well, that's it for this module. We started from scratch and built a fully functional production ready cluster in this session. In the next module we will focus on DKP Enterprise and more Fleet Management Capabilities.
 
 EOT
 }
