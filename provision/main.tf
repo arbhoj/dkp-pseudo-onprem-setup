@@ -93,6 +93,11 @@ variable "create_extra_worker_volumes" {
   default     = false
 }
 
+variable "create_extra_worker_volumes_rook" {
+  description = "Whether to create extra volumes for worker nodes to be used by rook"
+  default     = false
+} 
+
 
 variable "extra_volume_size" {
 description = "Size of the extra volume that will be attached to all the worker nodes"
@@ -488,7 +493,7 @@ resource "aws_instance" "control_plane" {
   subnet_id                   = aws_subnet.konvoy_public.id
   key_name                    = local.cluster_name
   ami                         = var.node_ami
-  instance_type               = "m5.8xlarge"
+  instance_type               = "m5.2xlarge"
   availability_zone           = var.aws_availability_zones[0]
   source_dest_check           = "false"
   associate_public_ip_address = "true"
@@ -628,6 +633,21 @@ resource "aws_ebs_volume" "worker_extra_volume" {
   )}"
 }
 
+resource "aws_ebs_volume" "worker_extra_volume_rook" {
+  count = var.create_extra_worker_volumes_rook ? var.worker_node_count: 0
+  availability_zone = var.aws_availability_zones[0]
+  size= 40
+  tags = "${merge(
+    var.tags,
+    tomap({
+      "Name": "${local.cluster_name}-worker-node-${count.index}",
+      "konvoy/nodeRoles": "worker_node",
+      }
+    )
+  )}"
+}
+
+
 resource "aws_volume_attachment" "worker_extra_volume" {
   count = var.create_extra_worker_volumes ? var.worker_node_count: 0
   device_name  = "/dev/sdh"
@@ -639,6 +659,18 @@ resource "aws_volume_attachment" "worker_extra_volume" {
     ignore_changes = [instance_id]
   }
 }
+
+resource "aws_volume_attachment" "worker_extra_volume_rook" {
+  count = var.create_extra_worker_volumes_rook ? var.worker_node_count: 0
+  device_name  = "/dev/sdi"
+  volume_id    = element(aws_ebs_volume.worker_extra_volume_rook.*.id, count.index)
+  instance_id  = element(aws_instance.worker.*.id, count.index)
+  force_detach = true
+  
+  lifecycle {
+    ignore_changes = [instance_id]
+  }
+} 
 
 ####Arvind Temp Single Node Test####
 resource "aws_ebs_volume" "control_extra_volume" {

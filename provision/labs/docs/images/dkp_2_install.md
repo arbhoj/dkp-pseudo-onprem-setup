@@ -1,60 +1,83 @@
-resource "local_file" "dkp_2_install_md" {
-  filename = "labs/docs/dkp_2_install.md"
-
-  depends_on = [aws_instance.registry]
-
-  provisioner "local-exec" {
-    command = "chmod 644 labs/docs/dkp_2_install.md"
-  }
-  content = <<EOT
-# DKP Enablement - Pre-Provisioned ${var.cluster_name}
-
-The goal of this session is to provide a self paced, hands on enablement experience on DKP (D2iQ Kubernetes Platform) by walking through the process of building a fully functional DKP cluster from scratch using the pre-provisioned CAPI (Cluster API) provider and form a solid foundation on not just DKP but also Cluster API.
-
-Let's begin by reviewing the environment details and connecting to the bootstrap/jump server using the connection details below. The required nodes and a Control Plane load-balancer have already been provisioned for lab exercises.
-> Note: Only the bootstrap/jumpbox node has a public IP and it already has all the required CLIs installed.
+# DKP Enablement - Pre-Provisioned dkp-lab-01-dkp
 
 ## Cluster Details
 
 Bootstrap Node:
 ```
-${aws_instance.registry[0].public_ip}
+35.93.157.10
 ```
 
 Control Plane Nodes:
 
 ```
-%{ for index, cp in aws_instance.control_plane ~}
-${cp.private_ip}
-%{ endfor ~}
+10.0.78.201
 ```
 
 Worker Nodes:
 ```
-%{ for index, wk in aws_instance.worker ~}
-${wk.private_ip}
-%{ endfor ~}
+10.0.241.128
+10.0.228.245
+10.0.216.57
+10.0.101.218
 ```
 
 Control Plane LoadBalancer:
 ```
-${aws_elb.konvoy_control_plane.dns_name} 
+tf-lb-20231220115246132800000011-1726386189.us-west-2.elb.amazonaws.com 
 ```
 
 ssh-key:
 ```
-${trimprefix(var.ssh_private_key_file, "../")}
+dkp-lab-01-dkp
 ```
 
 ## Connection Details
 Connect to the bootstrap server as all the lab exercises will be run from there.
 
 ```
-echo "${data.local_file.key_file.content}" > ${trimprefix(var.ssh_private_key_file, "../")}
+echo "-----BEGIN OPENSSH PRIVATE KEY-----
+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
+-----END OPENSSH PRIVATE KEY-----
+" > dkp-lab-01-dkp
 
-chmod 600 ${trimprefix(var.ssh_private_key_file, "../")}
+chmod 600 dkp-lab-01-dkp
 
-ssh centos@${aws_instance.registry[0].public_ip} -i ${trimprefix(var.ssh_private_key_file, "../")}
+ssh centos@35.93.157.10 -i dkp-lab-01-dkp
 ```
 
 Once on the bootstrap server run the following command to check things are working correctly
@@ -66,7 +89,7 @@ dkp version
 Follow the steps below to build a DKP Management Cluster in a [pre-provisioned](https://docs.d2iq.com/dkp/2.6/what-is-pre-provisioned) environment.
 Since DKP uses Cluster API (CAPI) to manage the lifecycle of Kubernetes clusters across all infrastructure, please watch the `What is CAPI` and `Why use CAPI` sections of ths [Intro to Kubernetes Cluster API](https://www.youtube.com/watch?v=U3ta48nmm4Y) video. We will be using other portions of this video as we step through this lab so only watch those sections for now.
 
-> Note: This is the only CAPI provisioner where the actual node lifecycle is not managed by CAPI. It only manages the lifecycle of a kubernetes cluster on top of pre-provisioned nodes. Hence the name Cluster API Pre-provisioned.  
+> Note: This is the only CAPI provisioner where the actual node lifecycle is not managed by CAPI. It only manages the lifecycle of a kubernetes cluster on top of pre-provisioned nodes. Hence the name Cluster API Pre-provisioned.
 
 ### Step 1: Create Bootstrap Cluster
 
@@ -103,14 +126,13 @@ First define the cluster name, node IPs, ssh user and ssh key secret name by set
 > Feel free to change the cluster name to something else.
 
 ```
-export CLUSTER_NAME=${var.cluster_name}
-%{ for index, cp in aws_instance.control_plane ~}
-export CONTROL_PLANE_${index}_ADDRESS=${cp.private_ip}
-%{ endfor ~}
-%{ for index, wk in aws_instance.worker ~}
-export WORKER_${index}_ADDRESS=${wk.private_ip}
-%{ endfor ~}
-export SSH_USER=${var.ssh_username}
+export CLUSTER_NAME=dkp-lab-01-dkp
+export CONTROL_PLANE_0_ADDRESS=10.0.78.201
+export WORKER_0_ADDRESS=10.0.241.128
+export WORKER_1_ADDRESS=10.0.228.245
+export WORKER_2_ADDRESS=10.0.216.57
+export WORKER_3_ADDRESS=10.0.101.218
+export SSH_USER=ubuntu
 export SSH_PRIVATE_KEY_SECRET_NAME="$CLUSTER_NAME-ssh-key"
 ```
 
@@ -118,12 +140,11 @@ As a best practice, verify that the variables have been set correctly
 
 ```
 echo CLUSTER_NAME=$CLUSTER_NAME &&
-%{ for index, cp in aws_instance.control_plane ~}
-echo CONTROL_PLANE_${index}_ADDRESS=$CONTROL_PLANE_${index}_ADDRESS &&
-%{ endfor ~}
-%{ for index, wk in aws_instance.worker ~}
-echo WORKER_${index}_ADDRESS=$WORKER_${index}_ADDRESS &&
-%{ endfor ~}
+echo CONTROL_PLANE_0_ADDRESS=$CONTROL_PLANE_0_ADDRESS &&
+echo WORKER_0_ADDRESS=$WORKER_0_ADDRESS &&
+echo WORKER_1_ADDRESS=$WORKER_1_ADDRESS &&
+echo WORKER_2_ADDRESS=$WORKER_2_ADDRESS &&
+echo WORKER_3_ADDRESS=$WORKER_3_ADDRESS &&
 echo SSH_USER=$SSH_USER &&
 echo SSH_PRIVATE_KEY_SECRET_NAME=$SSH_PRIVATE_KEY_SECRET_NAME
 
@@ -192,12 +213,12 @@ For this step, run the following command to build the manifests of the cluster a
 > Note: As demonstrated in the following command, it is best practice to generate the resource manifest first using the `--dry-run -o yaml` flags and then deploy it to the cluster using `kubectl create -f`  
 
 ```
-dkp create cluster preprovisioned --cluster-name $${CLUSTER_NAME} --control-plane-endpoint-host ${aws_elb.konvoy_control_plane.dns_name} --control-plane-replicas 1 --worker-replicas 4 --pre-provisioned-inventory-file preprovisioned_inventory.yaml --ssh-private-key-file ${var.cluster_name} --dry-run -o yaml > deploy-$${CLUSTER_NAME}.yaml
+dkp create cluster preprovisioned --cluster-name ${CLUSTER_NAME} --control-plane-endpoint-host tf-lb-20231220115246132800000011-1726386189.us-west-2.elb.amazonaws.com --control-plane-replicas 1 --worker-replicas 4 --pre-provisioned-inventory-file preprovisioned_inventory.yaml --ssh-private-key-file dkp-lab-01-dkp --dry-run -o yaml > deploy-${CLUSTER_NAME}.yaml
 
 ```
 
 > Note:
-> - Since this is a lab setup, only a single node has been provisioned for control plane but a load-balancer has been provisioned to demonstrate that capability. So, either use the control-plane ip or the load-balancer dns name ${aws_elb.konvoy_control_plane.dns_name} as a value for the `--control-plane-endpoint-host` flag. Please read [this](https://docs.d2iq.com/dkp/2.6/pre-provisioned-define-control-plane-endpoint-1) for more details.
+> - Since this is a lab setup, only a single node has been provisioned for control plane but a load-balancer has been provisioned to demonstrate that capability. So, either use the control-plane ip or the load-balancer dns name tf-lb-20231220115246132800000011-1726386189.us-west-2.elb.amazonaws.com as a value for the `--control-plane-endpoint-host` flag. Please read [this](https://docs.d2iq.com/dkp/2.6/pre-provisioned-define-control-plane-endpoint-1) for more details.
 > - In many on-prem environments including vSphere based environments where no external load-balancer (e.g. F5) is present, kube-vip is used to serve as the load-balancer for the control plane. Please read [this](https://docs.d2iq.com/dkp/2.6/pre-provisioned-built-in-virtual-ip) for more details on kube-vip.
 
 > For more details reference the following documentation link and also try running `dkp create cluster preprovisioned -h` to see other flags supported by this command
@@ -212,15 +233,15 @@ https://docs.d2iq.com/dkp/2.6/pre-provisioned-create-a-new-cluster
 This will create the following:
 - A secret named `$CLUSTER_NAME-ssh-key` containing the private ssh key passed via the `--ssh-private-key-file` flag (Note: The corresponding public key is already added to the pre-provisioned nodes as a part of this lab prep)
 - The `preprovisionedinventory` resources as defined in the `preprovisioned_inventory.yaml` file created in the last step
-- The `deploy-$${CLUSTER_NAME}.yaml` file containing all the resource manifests for building the cluster.
+- The `deploy-${CLUSTER_NAME}.yaml` file containing all the resource manifests for building the cluster.
 
-Now take time to carefully review the contents of deploy-$${CLUSTER_NAME}.yaml, as a good understanding of the various resources and parameters defined in this file are really important to understand how CAPI works. watch the `Custom resources` section of [this](https://www.youtube.com/watch?v=U3ta48nmm4Y) video to get a better understanding the role each resource plays in defining and building the cluster.
+Now take time to carefully review the contents of deploy-${CLUSTER_NAME}.yaml, as a good understanding of the various resources and parameters defined in this file are really important to understand how CAPI works. watch the `Custom resources` section of [this](https://www.youtube.com/watch?v=U3ta48nmm4Y) video to get a better understanding the role each resource plays in defining and building the cluster.
 
 Finally build the cluster by deploying the generated cluster specific CAPI resource manifests to the Bootstrap cluster like this:
 > Note: Some resources like machines and preprovisioned machines will be created dynamically when the build is triggered by running the following command.
 
 ```
-kubectl create -f deploy-$${CLUSTER_NAME}.yaml
+kubectl create -f deploy-${CLUSTER_NAME}.yaml
 ```
 
 ### Step 4: Observe the Cluster getting deployed
@@ -233,7 +254,7 @@ Once the cluster deployment has been triggered observe the different components 
 Run the following command to view the Cluster Deployment Status
 
 ```
-dkp describe cluster -c $${CLUSTER_NAME}
+dkp describe cluster -c ${CLUSTER_NAME}
 ```
 
 The output looks something like this
@@ -251,10 +272,10 @@ Cluster/dkp-lab-01-dkp                                             False  Warnin
     └─Machine/dkp-lab-01-dkp-md-0-68449b46d7x8cq8b-r99f7           False  Info      WaitingForControlPlaneAvailable  14s    0 of 2 completed 
 ```
 
-As shown in the sample output above, this command shows the overall cluster build progress and it is good to keep an eye on it. So open a new Terminal window; ssh to the bootstrap server using ssh centos@${aws_instance.registry[0].public_ip} -i ${trimprefix(var.ssh_private_key_file, "../")}; run the last command prefixed with `watch` and move the window to one side of the terminal to keep watching the updates.
+As shown in the sample output above, this command shows the overall cluster build progress and it is good to keep an eye on it. So open a new Terminal window; ssh to the bootstrap server using ssh centos@35.93.157.10 -i dkp-lab-01-dkp; run the last command prefixed with `watch` and move the window to one side of the terminal to keep watching the updates.
 
 ```
-watch dkp describe cluster -c $${CLUSTER_NAME}
+watch dkp describe cluster -c ${CLUSTER_NAME}
 ```
 > Note:
 > A CAPI based cluster build follows the standard kubernetes build sequence, where:
@@ -311,7 +332,7 @@ Some of the important ones to note are:
 Try to map the relationship of these resources to the other resources defined in the `Custom Resources` section of the [Intro to Kubernetes Cluster API](https://www.youtube.com/watch?v=U3ta48nmm4Y) video. 
 
 ### Step 5: Confirm cluster has been build successfully
-The `dkp describe cluster -c $${CLUSTER_NAME}` command will return something like this when the cluster has been built successfully
+The `dkp describe cluster -c ${CLUSTER_NAME}` command will return something like this when the cluster has been built successfully
 ```
 NAME                                                               READY  SEVERITY  REASON  SINCE  MESSAGE
 Cluster/dkp-lab-01-dkp                                             True                     5h24m         
@@ -331,9 +352,9 @@ If the cluster is not ready after 15-20 minutes have passed since the build was 
 Get cluster's kubeconfig; set that as the current config; and verify connectivity via kubectl
 
 ```
-dkp get kubeconfig -c $${CLUSTER_NAME} > $${CLUSTER_NAME}.conf
+dkp get kubeconfig -c ${CLUSTER_NAME} > ${CLUSTER_NAME}.conf
 
-export KUBECONFIG=$(pwd)/$${CLUSTER_NAME}.conf
+export KUBECONFIG=$(pwd)/${CLUSTER_NAME}.conf
 
 kubectl get no
 ```
@@ -343,9 +364,9 @@ Open the kubeconfig file and observe its contents
 
 > Note: Metallb in Layer2 mode works well for non-prod environments but for any environment running serious workload we highly recommend using an external load-balancer like F5. Here is the [link to a blog post](https://eng.d2iq.com/blog/auto-provisioning-kubernetes-loadbalancer-services-with-f5/) to automate provisioning of VIPs in F5 when a service of type LoadBalancer is created in a kubernetes cluster.  
 
-In on-prem environments where there is no cloud or external load-balancer (like F5), MetalLB is used to provision a kubernetes service of type LoadBalancer. It is deployed automatically for a pre-provisioned CAPI cluster via ClusterResourceSets but not configured (look at metallb ClusterResourceSet in deploy-$${CLUSTER_NAME}.yaml file for more details)
+In on-prem environments where there is no cloud or external load-balancer (like F5), MetalLB is used to provision a kubernetes service of type LoadBalancer. It is deployed automatically for a pre-provisioned CAPI cluster via ClusterResourceSets but not configured (look at metallb ClusterResourceSet in deploy-${CLUSTER_NAME}.yaml file for more details)
 The simplest way to configure MetalLB is in layer2 mode shown below. The other option is BGP mode but that is an advanced topic and out of scope for this lab. Please read the [MetalLB documentation](https://metallb.universe.tf/concepts) for more details. 
-Apply this to the newly created cluster (Note: Alternatively, this could have been bundled in the metallb Configmap which is at the bottom of the deploy-$${CLUSTER_NAME}.yaml file and baked into the deployment). 
+Apply this to the newly created cluster (Note: Alternatively, this could have been bundled in the metallb Configmap which is at the bottom of the deploy-${CLUSTER_NAME}.yaml file and baked into the deployment). 
 
 ```
 kubectl apply -f - <<EOF
@@ -360,9 +381,10 @@ data:
     - name: default
       protocol: layer2
       addresses:
-%{ for index, wk in aws_instance.worker ~}
-      - ${wk.private_ip}/32
-%{ endfor ~}
+      - 10.0.241.128/32
+      - 10.0.228.245/32
+      - 10.0.216.57/32
+      - 10.0.101.218/32
 EOF
 ```
 
@@ -387,7 +409,7 @@ test         LoadBalancer   10.104.213.54   10.0.241.128   80:31607/TCP   6s
 
 Now do a curl test 
 ```
-curl ${aws_instance.worker[0].private_ip} 
+curl 10.0.241.128 
 ```
 
 Cleanup as IPs are precious resources
@@ -396,7 +418,7 @@ kubectl delete po,svc test --force
 ```
 
 ### Step 8: Validate PersistentVolumes 
-The default csi for a pre-provisioned cluster is localvolumeprovisioner. View the localvolumeprovisioner ClusterResourceSet in the deploy-$${CLUSTER_NAME}.yaml file for more details on how this component is deployed to the new cluster. It is a static provisioner and requires disks to be mounted to `/mnt/disks` on the worker nodes to serve them as `PersistentVolumes` in the kubernetes cluster.  
+The default csi for a pre-provisioned cluster is localvolumeprovisioner. View the localvolumeprovisioner ClusterResourceSet in the deploy-${CLUSTER_NAME}.yaml file for more details on how this component is deployed to the new cluster. It is a static provisioner and requires disks to be mounted to `/mnt/disks` on the worker nodes to serve them as `PersistentVolumes` in the kubernetes cluster.  
 
 The disks have been pre-carved and mounted for this lab using the `best practice` of `naming the the mounts in an ascending order proportional to the size of the disk`. e.g. 10000nnn - Small (11G) 11000nnn - Medium (35G) 11100nnn - Large (105G). This is a simple logic to prevent a very small kubernetes PersistentVolumeClaim from binding to a large kubernetes PersistentVolume. This is because when a PersitentVolumeClaim is created, `localvolumeprovisioner` looks for a suitable disk (i.e. >= the size requested) starting from a free mount that comes first in the ascending order sorted by the name of the mount. The script in this [git repo](https://github.com/arbhoj/LVP-ConfigureDisks) was used to configure this. 
 
@@ -460,7 +482,7 @@ Optionally move the CAPI resources (cluster, kubeadmcontrolplane, machinedeploym
 Run the following command to move CAPI resources from one kubernetes cluster to another
 >Note: This can be re-run to move the resources back from the new cluster to the bootstrap cluster or another CAPI cluster running same version of CAPI components. Run `dkp move capi-resources -h` to explore other flags for this command.  
 ```
-dkp move capi-resources --from-kubeconfig ~/.kube/config --to-kubeconfig $${CLUSTER_NAME}.conf
+dkp move capi-resources --from-kubeconfig ~/.kube/config --to-kubeconfig ${CLUSTER_NAME}.conf
 ```
 ### Step 11: Deploy Kommander
 Once all steps upto `Step 9` have been completed, we are ready to deploy Kommander, the DKP component that installs and configures `Addons` (like logging, monitoring etc.) and `Management` capabilities on top of the DKP base kubernetes cluster.
@@ -582,25 +604,23 @@ pip3 install sshuttle
 # Connect
 eval `ssh-agent`
 ssh-add dkp-lab-01-dkp
-sudo sshuttle -r  centos@${aws_instance.registry[0].public_ip} 0/0 
+sudo sshuttle -r  centos@35.93.157.10 0/0 
 ```
 
-For Windows users, use ssh dynamic port forwarding (SOCKS proxy) with a tool like MobaXterm as shown below.
-![mobaxterm_tunnel](./images/mobaxterm_tunnel.png)
+For Windows users, use ssh dynamic port forwarding (SOCKS proxy) with a tool like Mobaterm as shown below.
+![mobaxterm_tunnel](./mobaxterm_tunnel.png)
 Then from firefox setup a `SOCKS5 v5`proxy as shown below and finally access the DKP dashboard link
-![firefox_proxy](./images/firefox_proxy5_settings.png)
+![firefox_proxy](./firefox_proxy5_settings.png)
 
 Here is what the DKP dashboard should look like after logging in.
-![DKP_Dashboard](./images/DKP_Dashboard.png)
+![DKP_Dashboard](./DKP_Dashboard.png)
 
 ### Step 12: Explore Kommander 
 Now take a moment to open all the application dahboards that are deployed and configured by default. Specifically `Grafana`, which has many rich dashboard configured out of the box.
 > Note: Without a license the dashboard has all it's fleet management features disabled. 
 
 These can be accessed by clicking on the `Cluster` nav-bar item as shown below.
-![Dashboards](./images/dashboards.png)
+![Dashboards](./dashboards.png)
 
 Well, that's it for this session. We started from scratch and built a fully functional production ready cluster in this session. In the next session we will focus on DKP Enterprise and more Fleet Management Capabilities.
 
-EOT
-}

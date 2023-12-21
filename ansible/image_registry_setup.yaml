@@ -6,6 +6,13 @@
   - name: Disable SELinux
     ansible.posix.selinux:
       state: disabled
+  - name: Copy docs directory
+    copy:
+      src: "../provision/labs"
+      dest: /home/centos/
+      owner: centos
+      group: centos
+      mode: 0700
   - name: Install yum utils and epel-release
     yum:
       name:
@@ -50,6 +57,31 @@
       state: restarted
       enabled: yes
       daemon_reload: yes
+  - name: Start Labs Server
+    community.docker.docker_container:
+      name: mkdocs-material
+      image: squidfunk/mkdocs-material
+      state: started
+      restart: yes
+      ports:
+      - "80:8000"
+      volumes:
+       - /home/centos/labs:/docs
+      container_default_behavior: compatibility
+  - name: Start Registry Server
+    community.docker.docker_container:
+      name: dkpimageregistry
+      image: registry:2
+      state: started
+      ports:
+      - "5000:5000"
+      #volumes:
+      #- /home/centos/certs:/certs
+      env:
+        REGISTRY_HTTP_ADDR: "0.0.0.0:5000"
+        #REGISTRY_HTTP_TLS_CERTIFICATE: "/certs/client-cert.crt"
+        #REGISTRY_HTTP_TLS_KEY: "/certs/client-key.key"
+      container_default_behavior: compatibility
   - name: Download and configure kubectl
     get_url:
       url: "https://cdn.dl.k8s.io/release/{{kubectl_version}}/bin/linux/amd64/kubectl"
@@ -170,20 +202,22 @@
         state: directory
         mode: 0755
         owner: centos
-        group: centos 
-    - name: Copy dkp_2_install.md
-      copy:
-        src: "../provision/dkp_2_install.md"
-        dest: /home/centos/notes
-        owner: centos
         group: centos
-        mode: 0600
+    # This was for the old notes server
+    #- name: Copy dkp_2_install.md
+    #  copy:
+    #    src: "../provision/dkp_2_install.md"
+    #    dest: /home/centos/notes
+    #    owner: centos
+    #    group: centos
+    #    mode: 0600
     - name: Add alias for k and set kubeconfig to konvoy cluster
       blockinfile:
         path: /home/centos/.bashrc
         block: |
           alias watch='watch '
-          alias k="kubectl --kubeconfig=/home/centos/admin.conf"
+          alias k="kubectl"
+          export PATH=$PATH:~ 
     #- name: Copy auto_full.sh to the registry server
     #  copy:
     #    src: "../provision/auto_full.sh"
@@ -195,28 +229,4 @@
     #  script: ../provision/auto_full.sh 
     become_user: centos
   ##Running the following two as root as we were getting a (13,'Permission denied error') although the user is added to docker group. This could be because the same connection is being persisted and the user needs to logout and log back in for the permissions to become effective.  
-  - name: Start Notes Server
-    community.docker.docker_container:
-      name: markdownserver
-      image: thomsch98/markserv
-      state: started
-      restart: yes
-      ports:
-      - "80:3080"
-      volumes:
-       - /home/centos/notes:/data
-      container_default_behavior: compatibility
-  - name: Start Registry Server
-    community.docker.docker_container:
-      name: dkpimageregistry
-      image: registry:2
-      state: started
-      ports:
-      - "5000:5000"
-      #volumes:
-      #- /home/centos/certs:/certs
-      env:
-        REGISTRY_HTTP_ADDR: "0.0.0.0:5000"
-        #REGISTRY_HTTP_TLS_CERTIFICATE: "/certs/client-cert.crt"
-        #REGISTRY_HTTP_TLS_KEY: "/certs/client-key.key"
-      container_default_behavior: compatibility
+

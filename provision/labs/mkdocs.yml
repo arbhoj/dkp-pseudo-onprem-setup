@@ -1,0 +1,19 @@
+site_name: DKP Enablement - Pre-Provisioned
+theme:
+  name: material
+  logo: ../images/favicon.ico
+  favicon: ../images/favicon.ico
+  pallete:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      toggle:
+        icon: material/toggle-switch-off-outline
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      toggle:
+        icon: material/toggle-switch
+        name: Switch to light mode
+  features:
+    - navigation.sections
+    - content.code.copy
