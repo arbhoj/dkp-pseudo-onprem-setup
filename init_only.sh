@@ -1,7 +1,7 @@
 ##As a convention USERID will be the current dir name
 export USERID=${PWD##*/}
 
-export CLUSTER_NAME=$USERID-dkp
+export CLUSTER_NAME=$USERID
 if test -f "$CLUSTER_NAME"; then
     echo "$CLUSTER_NAME key already exists. Skipping..."
 else
@@ -38,6 +38,7 @@ create_iam_instance_profile = true
 cluster_name = "$CLUSTER_NAME"
 ssh_private_key_file = "../$CLUSTER_NAME"
 ssh_public_key_file = "../$CLUSTER_NAME.pub"
+create_extra_worker_volumes_rook = true
 create_extra_worker_volumes = true
 extra_volume_size = 250
 EOF
