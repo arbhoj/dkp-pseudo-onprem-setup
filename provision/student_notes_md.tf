@@ -78,10 +78,18 @@ Run the following command to build a CAPI enabled bootstrap bootstrap cluster
 dkp create bootstrap
 ```
 
-While the CAPI enabled bootstrap cluster is being deployed, start watching the `CAPI Components` section of the [Intro to Kubernetes Cluster API](https://www.youtube.com/watch?v=U3ta48nmm4Y) video. Once the bootstrap cluster is deployed, explore the resources in the bootstrap cluster using the following commands and try to corelate the information in the video and what you see in this cluster. This bootstrap cluster is the temporary CAPI Management cluster used to build the first management cluster.
+While the CAPI enabled bootstrap cluster is being deployed, start watching the `CAPI Components` section of the [Intro to Kubernetes Cluster API](https://www.youtube.com/watch?v=U3ta48nmm4Y) video. 
 
 Use the following documentation link for additional details on the bootstrap cluster and to get acquainted with DKP documentation. 
-https://docs.d2iq.com/dkp/2.6/pre-provisioned-bootstrap-cluster
+<https://docs.d2iq.com/dkp/2.6/pre-provisioned-bootstrap-cluster>
+
+Once the bootstrap cluster is deployed, observe how it runs a single container inside the local docker instance on the bootstrap/jumpbox node
+```
+docker ps | grep boot
+```
+The kubeconfig of the kubernetes cluster is stored in `~/.kube/config` (i.e. the default kubeconfig location)
+
+Explore the resources in the bootstrap cluster using the following commands and try to corelate the information in the video and what you see in this cluster. This bootstrap cluster is the temporary CAPI Management cluster used to build the first management cluster.
 
 ```
 kubectl get no # To see that a single node KIND (Kubernetes IN Docker) cluster was deployed
@@ -132,7 +140,7 @@ echo SSH_PRIVATE_KEY_SECRET_NAME=$SSH_PRIVATE_KEY_SECRET_NAME
 
 Now run the following to generate the preprovisioned_inventory.yaml file to define the inventory (similar to ansible inventory) for control plane and for worker nodes
 > Note: Use the following document link as reference and note the changes made to modify the default number of nodes in each inventory.
-> https://docs.d2iq.com/dkp/2.6/pre-prov-define-infrastructure
+> <https://docs.d2iq.com/dkp/2.6/pre-prov-define-infrastructure>
 
 ```
 cat <<EOF > preprovisioned_inventory.yaml
@@ -201,9 +209,7 @@ dkp create cluster preprovisioned --cluster-name $${CLUSTER_NAME} --control-plan
 > - In many on-prem environments including vSphere based environments where no external load-balancer (e.g. F5) is present, kube-vip is used to serve as the load-balancer for the control plane. Please read [this](https://docs.d2iq.com/dkp/2.6/pre-provisioned-built-in-virtual-ip) for more details on kube-vip.
 
 > For more details reference the following documentation link and also try running `dkp create cluster preprovisioned -h` to see other flags supported by this command
-
-https://docs.d2iq.com/dkp/2.6/pre-provisioned-create-a-new-cluster
-
+><https://docs.d2iq.com/dkp/2.6/pre-provisioned-create-a-new-cluster>
 > Note that the above documentation link also uses `--self-managed` flag in the `dkp create cluster preprovisioned` command example. This flag automatically deploys capi-components to the new cluster and then moves all the cluster specific capi resources to the new cluster to make it `Self Managed` (i.e. the cluster will host its own CAPI resources and manage itself)
 
 
@@ -555,6 +561,35 @@ dkp install kommander --installer-config kommander-config.yaml
 ```
 
 This can take upto 20 minutes to install
+
+#### - Observe Flux & Other Resources getting deployed
+While the kommander install command is running, open another terminal window; SSH to the bootstrap node 
+```
+ssh centos@${aws_instance.registry[0].public_ip} -i ${trimprefix(var.ssh_private_key_file, "../")}`)
+```
+Set the `$${CLUSTER_NAME}` environment variable to the cluster that is being built; and set the `KUBECONFIG` environment variable to point to the this cluster
+```
+export KUBECONFIG=$(pwd)/$${CLUSTER_NAME}.conf`)
+``` 
+
+Now run the following commands to watch the components getting deployed. These can be used to troubleshoot an install if something goes wrong. 
+
+> Note: It might take a few for them to show up, so if a particular command returns a not found error, try again after a few.
+```
+kubectl get ns # Watch for new namespaces getting created
+kubectl get po -A | grep git # Watch for the gitea pod getting deployed # This is the pod serving the internal git repository that Kommander leverages to deploy payload to all the clusters.
+kubectl get po -n kommander-flux # The Flux namespace and it's corresponding PODs
+kubectl get apps -A # List of application resources defined in Kommander
+kubectl get appdeployments # List of instances of the Kommander applications that the kommander application controller should deploy
+kubectl get gitrepo -A # List the Kommander git repo that contains the payload to be deployed for the. This references the locally (gitea) hosted git repo
+kubectl get ks -A # List all the Flux Kustomization resources 
+kubectl get helmrepo -A | List of all the Kommander helm repos
+kubectl get hr -A # List all the Flux HelmRelease resources. Typically you would watch the output of this command to closely watch the progress of kommander install and to watch for any errors in case a dependency was not met. 
+```
+> As evident from the list of commands above, the kommander installation is broken in two parts: 
+> - The first part deploys a git repository (using gitea) and bootstraps Flux CD; and 
+> - The second part deploys the resources defined in the git repository using Flux CD
+> Both Cluster API and Flux CD are core components of DKP 
 
 #### - Accessing the DKP Dashboard
 Once the kommander installation completes, run the following command to get the url and the admin credentials to access the kommander dashboard
