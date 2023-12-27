@@ -565,11 +565,11 @@ This can take upto 20 minutes to install
 #### - Observe Flux & Other Resources getting deployed
 While the kommander install command is running, open another terminal window; SSH to the bootstrap node 
 ```
-ssh centos@${aws_instance.registry[0].public_ip} -i ${trimprefix(var.ssh_private_key_file, "../")}`)
+ssh centos@${aws_instance.registry[0].public_ip} -i ${trimprefix(var.ssh_private_key_file, "../")}
 ```
 Set the `$${CLUSTER_NAME}` environment variable to the cluster that is being built; and set the `KUBECONFIG` environment variable to point to the this cluster
 ```
-export KUBECONFIG=$(pwd)/$${CLUSTER_NAME}.conf`)
+export KUBECONFIG=$(pwd)/$${CLUSTER_NAME}.conf
 ``` 
 
 Now run the following commands to watch the components getting deployed. These can be used to troubleshoot an install if something goes wrong. 
