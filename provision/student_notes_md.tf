@@ -616,7 +616,7 @@ pip3 install sshuttle
 
 # Connect
 eval `ssh-agent`
-ssh-add dkp-lab-01-dkp
+ssh-add ${trimprefix(var.ssh_private_key_file, "../")} 
 sudo sshuttle -r  centos@${aws_instance.registry[0].public_ip} 0/0 
 ```
 
