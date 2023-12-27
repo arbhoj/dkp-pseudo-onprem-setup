@@ -617,7 +617,7 @@ pip3 install sshuttle
 # Connect
 eval `ssh-agent`
 ssh-add ${trimprefix(var.ssh_private_key_file, "../")} 
-sudo sshuttle -r  centos@${aws_instance.registry[0].public_ip} 0/0 
+sudo sshuttle -r  centos@${aws_instance.registry[0].public_ip} 10.0.0.0/16 # Note: Change the subnet if needed to match the subnet of private IPs being connected to 
 ```
 
 For Windows users, use ssh dynamic port forwarding (SOCKS proxy) with a tool like MobaXterm as shown below.
