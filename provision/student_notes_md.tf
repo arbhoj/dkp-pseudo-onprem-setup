@@ -382,16 +382,16 @@ kubectl expose po/test --type LoadBalancer --port 80
 Ensure that the `EXTERNAL-IP` field of the service is provisioned with an IP from the list provided in the metallb configmap just deployed to the cluster.
 
 ```
-kubectl get svc
+kubectl get svc 
 ```
 The output should be something like
 ```
 NAME         TYPE           CLUSTER-IP      EXTERNAL-IP    PORT(S)        AGE
 kubernetes   ClusterIP      10.96.0.1       <none>         443/TCP        6h23m
-test         LoadBalancer   10.104.213.54   10.0.241.128   80:31607/TCP   6s
+test         LoadBalancer   10.104.213.54   ${aws_instance.worker[0].private_ip}   80:31607/TCP   6s
 ```
 
-Now do a curl test 
+Now grab the `External-IP` of the test service just created and do a curl to see if that works. 
 ```
 curl ${aws_instance.worker[0].private_ip} 
 ```
@@ -550,7 +550,8 @@ Now, since we are deploying to a pre-provisioned environment using `localvolumep
             useAllDevices: true
             useAllNodes: true
 ``` 
-> Note: The above means any raw device on any node will be added to the rook-ceph-cluster. There is optionally a `deviceFilter` field that can be used to limit the devices that can be added to the cluster. Read the documentation in [this link](storageClassDeviceSets) for more details.
+> Note: The above means any raw device on any node will be added to the rook-ceph-cluster. There is optionally a `deviceFilter` field that can be used to limit the devices that can be added to the cluster. Read the documentation in [this link](https://docs.d2iq.com/dkp/2.6/pre-provisioned-install-kommander) for more details.
+
 
 With the changes saved to the `kommander-config.yaml` file let's move to the next section to install kommander.
 
@@ -583,7 +584,7 @@ kubectl get apps -A # List of application resources defined in Kommander
 kubectl get appdeployments # List of instances of the Kommander applications that the kommander application controller should deploy
 kubectl get gitrepo -A # List the Kommander git repo that contains the payload to be deployed for the. This references the locally (gitea) hosted git repo
 kubectl get ks -A # List all the Flux Kustomization resources 
-kubectl get helmrepo -A | List of all the Kommander helm repos
+kubectl get helmrepo -A # List of all the Kommander helm repos
 kubectl get hr -A # List all the Flux HelmRelease resources. Typically you would watch the output of this command to closely watch the progress of kommander install and to watch for any errors in case a dependency was not met. 
 ```
 > As evident from the list of commands above, the kommander installation is broken in two parts: 
