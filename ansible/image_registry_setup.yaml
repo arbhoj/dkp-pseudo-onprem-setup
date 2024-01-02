@@ -68,20 +68,7 @@
       volumes:
        - /home/centos/labs:/docs
       container_default_behavior: compatibility
-  - name: Start Registry Server
-    community.docker.docker_container:
-      name: dkpimageregistry
-      image: registry:2
-      state: started
-      ports:
-      - "5000:5000"
-      #volumes:
-      #- /home/centos/certs:/certs
-      env:
-        REGISTRY_HTTP_ADDR: "0.0.0.0:5000"
-        #REGISTRY_HTTP_TLS_CERTIFICATE: "/certs/client-cert.crt"
-        #REGISTRY_HTTP_TLS_KEY: "/certs/client-key.key"
-      container_default_behavior: compatibility
+
   - name: Download and configure kubectl
     get_url:
       url: "https://cdn.dl.k8s.io/release/{{kubectl_version}}/bin/linux/amd64/kubectl"
@@ -90,10 +77,24 @@
       validate_certs: false
   - name: Local user configs
     block:
-    #- name: Create ssl certs for image registry
-    #  script: create_registrycerts.sh
-    #  args:
-    #    creates: ca.crt
+    - name: Create ssl certs for image registry
+      script: create_registrycerts.sh
+      args:
+        creates: ca.crt
+    - name: Start Registry Server
+      community.docker.docker_container:
+        name: dkpimageregistry
+        image: registry:2
+        state: started
+        ports:
+        - "5000:5000"
+        volumes:
+        - /home/centos/certs:/certs
+        env:
+          REGISTRY_HTTP_ADDR: "0.0.0.0:5000"
+          REGISTRY_HTTP_TLS_CERTIFICATE: "/certs/client-cert.crt"
+          REGISTRY_HTTP_TLS_KEY: "/certs/client-key.key"
+        container_default_behavior: compatibility
     - name: Download helm_install Script
       get_url:
         url: https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3
