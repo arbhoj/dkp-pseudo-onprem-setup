@@ -859,7 +859,7 @@ ${trimprefix(var.ssh_private_key_file, "../")}
 
 #########################
 Notes: URL
-http://${aws_instance.registry[0].public_ip}/dkp_2_install.md
+http://${aws_instance.registry[0].public_ip}/dkp_2_install
 #########################
 Note: For Lab environment view the instructions in /home/centos/${local.cluster_name}-student-notes.txt on the registry/bootstrap server
 ssh centos@${aws_instance.registry[0].public_ip} -i ${trimprefix(var.ssh_private_key_file, "../")}
