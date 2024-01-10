@@ -581,7 +581,7 @@ kubectl get ns # Watch for new namespaces getting created
 kubectl get po -A | grep git # Watch for the gitea pod getting deployed # This is the pod serving the internal git repository that Kommander leverages to deploy payload to all the clusters.
 kubectl get po -n kommander-flux # The Flux namespace and it's corresponding PODs
 kubectl get apps -A # List of application resources defined in Kommander
-kubectl get appdeployments # List of instances of the Kommander applications that the kommander application controller should deploy
+kubectl get appdeployments -A # List of instances of the Kommander applications that the kommander application controller should deploy
 kubectl get gitrepo -A # List the Kommander git repo that contains the payload to be deployed for the. This references the locally (gitea) hosted git repo
 kubectl get ks -A # List all the Flux Kustomization resources 
 kubectl get helmrepo -A # List of all the Kommander helm repos
