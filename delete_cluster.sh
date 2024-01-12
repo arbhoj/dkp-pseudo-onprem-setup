@@ -8,7 +8,7 @@ then
    echo Deleting Cluster $CLUSTER_NAME
    #if [ $1 -ne "force" ]; then 
      echo "First deleteing any services of type loadbalancer"
-     ./provision/pre_delete.sh
+     #./provision/pre_delete.sh
    #fi 
    terraform -chdir=provision/ destroy --auto-approve -var-file ../$USERID.tfvars
 else
